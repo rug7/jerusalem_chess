@@ -1,0 +1,31 @@
+{
+  "difficultyText": "Game Difficulty",
+  "playAsBlackText": "Play as Black",
+  "playAsWhiteText": "Play as White",
+  "setUpText": "Set Up Game",
+  "playText": "Play",
+  "easyMode": "Easy",
+  "mediumMode": "Medium",
+  "hardMode": "Hard",
+  "chooseGameTime":"Choose Game Time",
+  "multiplayer": "Multiplayer",
+  "playAgainstComputer": "Play Against Computer",
+  "about": "About",
+  "settings": "Settings",
+  "homeTitle": "Jerusalem chess",
+  "login":"Log In",
+  "yourEmail": "Enter your email",
+  "yourPass": "Enter your password",
+  "forgotPass": "Forgot password ?",
+  "orSocial": "- OR - \n Sign in With",
+  "facebook": "Facebook",
+  "email": "Email",
+  "phone": "Phone",
+  "noAccount": "Don't have an account ?",
+  "signup": "Sign Up",
+  "yourName": "Enter your name",
+  "sign_in": "Sign In",
+  "gotAccount": "Have an account ?"
+
+
+}
