@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
 import 'package:flutter_chess_1/helper/helper_methods.dart';
 import 'package:flutter_chess_1/widgets/main_auth_button.dart';

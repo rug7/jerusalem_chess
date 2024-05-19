@@ -261,15 +261,15 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                     playGame(gameProvider: gameProvider);
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.pressed)) {
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                          (Set<WidgetState> states) {
+                        if (states.contains(WidgetState.pressed)) {
                           return Theme.of(context).colorScheme.primary.withOpacity(0.5);
                         }
                         return _themeLanguageProvider.isLightMode ? const Color(0xFF663d99) : const Color(0xFF663d99); // Different color in dark mode
                       },
                     ),
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                    foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
                   ),
                   child: Text(
                     getTranslation('playText', translations),

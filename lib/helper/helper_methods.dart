@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:squares/squares.dart';
 
 Widget buildGameType(
@@ -94,3 +97,34 @@ var textFormDecoration = InputDecoration(
 
 );
 
+//pick an image
+Future<File?> pickImage({
+  required bool fromCamera,
+  required Function(String) onFail,
+})async{
+  File? fileImage;
+  if(fromCamera){
+    try{
+      final takenPhoto = await ImagePicker().pickImage(source: ImageSource.camera);
+
+      if(takenPhoto != null){
+        fileImage = File(takenPhoto.path);
+      }
+    }catch(e){
+      onFail(e.toString());
+    }
+  }
+  else{
+    try{
+      final chooseAnImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if(chooseAnImage != null){
+        fileImage = File(chooseAnImage.path);
+      }
+    }catch(e){
+      onFail(e.toString());
+    }
+
+  }
+  return fileImage;
+}

@@ -20,8 +20,8 @@ class SocialButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _themeLanguageProvider = Provider.of<ThemeLanguageProvider>(context, listen: false);
-    final isLightMode = _themeLanguageProvider.isLightMode;
+    final themeLanguageProvider = Provider.of<ThemeLanguageProvider>(context, listen: false);
+    final isLightMode = themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.black : Colors.white;
     return GestureDetector(
       onTap: onTap,

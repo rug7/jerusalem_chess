@@ -44,7 +44,7 @@ class CustomBoardState extends Equatable {
     this.checkSquare,
   }) : orientation = orientation ?? turn;
 
-  factory CustomBoardState.empty() => CustomBoardState(board: []);
+  factory CustomBoardState.empty() => const CustomBoardState(board: []);
 
   CustomBoardState copyWith({
     List<String>? board,

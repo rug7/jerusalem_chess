@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:squares/squares.dart';
-import 'package:flutter_chess_1/providers/custom_piece_overlay.dart';
 
 /// Builds a map of arbitrary [children] in a board arrangement, according to
 /// [size] and [orientation]. The keys of [children] should be square indices.

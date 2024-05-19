@@ -122,7 +122,6 @@ class _CustomBoardPiecesState extends State<CustomBoardPieces> {
       child: Padding(
         padding: EdgeInsets.all(widget.piecePadding * squareSize),
         child: Piece(
-          child: piece,
           draggable: currentDrag != null ? currentDrag == id : draggable,
           interactible: currentDrag == null || currentDrag == id,
           move: PartialMove(
@@ -133,6 +132,7 @@ class _CustomBoardPiecesState extends State<CustomBoardPieces> {
           onDragStarted: () => _onDragStarted(id),
           onDragCancelled: () => _onDragCancelled(id),
           onDragEnd: (details) => _onDragEnd(id, details),
+          child: piece,
         ),
       ),
     );
@@ -143,7 +143,6 @@ class _CustomBoardPiecesState extends State<CustomBoardPieces> {
         animate) {
       int orientation = widget.state.orientation == Squares.white ? 1 : -1;
       return MoveAnimation(
-        child: p,
         x: -widget.size
             .fileDiff(widget.state.lastFrom!, widget.state.lastTo!)
             .toDouble() *
@@ -154,6 +153,7 @@ class _CustomBoardPiecesState extends State<CustomBoardPieces> {
             orientation,
         duration: widget.animationDuration,
         curve: widget.animationCurve,
+        child: p,
       );
     }
     return p;

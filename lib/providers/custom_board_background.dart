@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:squares/squares.dart';
 
 import 'custom_board_theme.dart';
-import 'custom_bord_pieces.dart';
-import 'custom_piece_selector.dart';
-import 'custom_piece_set.dart';
 /// The background layer of a board. Contains coloured boxes, potentially with markers.
 class CustomBoardBackground extends StatelessWidget {
   /// Configuration for the background. Determines which squares to draw, and

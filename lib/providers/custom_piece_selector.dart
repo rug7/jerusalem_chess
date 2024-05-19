@@ -24,7 +24,7 @@ class CustomPieceSelector extends StatelessWidget {
   /// Called when a piece is tapped.
   final Function(int)? onTap;
 
-  CustomPieceSelector({
+  CustomPieceSelector({super.key, 
     required this.data,
     required this.theme,
     MarkerTheme? markerTheme,
@@ -38,7 +38,7 @@ class CustomPieceSelector extends StatelessWidget {
     List<Widget> pieces = data.pieces
         .map((p) => p == null ? Container() : pieceSet.piece(context, p))
         .toList();
-    return Container(
+    return SizedBox(
       width: squareSize,
       height: squareSize * pieces.length,
       child: Column(
@@ -97,7 +97,7 @@ class CustomPositionedPieceSelector extends StatelessWidget {
   /// Called when a piece is tapped.
   final Function(int)? onTap;
 
-  CustomPositionedPieceSelector({
+  CustomPositionedPieceSelector({super.key, 
     required this.data,
     required this.boardState,
     required this.boardSize,

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../main_screens/color_option_screen.dart';
@@ -16,8 +19,91 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
 
+  File? finalFileImage;
+  String fileImageUrl = '';
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+
   late Map<String, dynamic> _translations;
   late ThemeLanguageProvider _themeLanguageProvider;
+
+
+  void selectImage({required bool fromCamera})async{
+    finalFileImage= await pickImage(
+        fromCamera: fromCamera,
+        onFail: (e){
+          showSnackBar(context: context, content: e.toString());
+        });
+
+    if(finalFileImage != null){
+      cropImage(finalFileImage!.path);
+    }
+    else{
+      popCropDialog();
+    }
+  }
+
+  void cropImage(String path) async{
+    CroppedFile ? croppedFile = await ImageCropper().cropImage(
+      sourcePath: path,
+      maxHeight: 800,
+      maxWidth: 800,
+    );
+    popCropDialog();
+
+    if(croppedFile != null){
+      setState(() {
+        finalFileImage = File(croppedFile.path);
+      });
+
+      print('imagePath: $finalFileImage');
+    }else{
+      popCropDialog();
+    }
+
+
+  }
+
+  void popCropDialog(){
+    Navigator.pop(context);
+  }
+
+
+
+  void showImagePickerDialog(){
+    showDialog(
+        context: context,
+        builder: (context){
+          return  AlertDialog(
+            title: const Text("Select an Option",style: TextStyle(fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,),),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text("Camera"),
+                  onTap: (){
+                    //choose image from camera
+                    selectImage(fromCamera: true);
+
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.image),
+                  title: const Text("Gallery"),
+                  onTap: (){
+                    //choose image from gallery
+                    selectImage(fromCamera: false);
+
+                  },
+                ),
+              ],
+            ),
+          );
+        });
+  }
 
   @override
   void initState() {
@@ -48,6 +134,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     // Dispose the listener to avoid memory leaks
     _themeLanguageProvider.removeListener(_onLanguageChanged);
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -120,15 +209,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Text(
                   getTranslation('signup', _translations),
                   style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      color: oppColor,
+                    fontSize: 34,
+                    fontWeight: FontWeight.bold,
+                    color: oppColor,
                   ),
                 ),
                 const SizedBox(
                   height: 20,
                 ),
-                 Stack(
+                finalFileImage != null ?
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Color(0xFFf0f5f7),
+                      backgroundImage: FileImage(File(finalFileImage!.path)),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF663d99),
+                          border: Border.all(width: 2,color: Colors.white,),
+                          borderRadius: BorderRadius.circular(35),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                            ),
+                            onPressed: (){
+                              showImagePickerDialog();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ):
+                Stack(
                   children: [
                     const CircleAvatar(
                       radius: 60,
@@ -151,7 +273,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Icons.camera_alt,
                               color: Colors.white,
                             ),
-                            onPressed: (){},
+                            onPressed: (){
+                              showImagePickerDialog();
+                            },
                           ),
                         ),
                       ),
@@ -214,7 +338,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     labelAction: getTranslation('sign_in', _translations),
                     onPressed: (){
 
-                }),
+                    }),
               ],
             ),
           ),
@@ -222,4 +346,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+
 }
