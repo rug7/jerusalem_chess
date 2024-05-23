@@ -141,7 +141,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
                     label: label,
                     gameTime: gameTime,
                     onTap: () {
-                      if (label == Constants.custom) {
+                      if (label == Constants.custom || label == Constants.arabicCustom) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(

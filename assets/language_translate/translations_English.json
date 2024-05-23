@@ -25,7 +25,17 @@
   "signup": "Sign Up",
   "yourName": "Enter your name",
   "sign_in": "Sign In",
-  "gotAccount": "Have an account ?"
+  "gotAccount": "Have an account ?",
+
+  "nameValidator": "Please enter your name",
+  "nameLenValidator": "Your name must be at least 3 characters",
+
+  "emailValidator": "Please enter your email",
+  "emailNotValid": "Please enter a valid email",
+  "emailLenValidator": "Your email must be at least 3 characters",
+
+  "passwordValidator": "Please enter a password",
+  "passwordLenValidator": "Your name must be at least 5 characters"
 
 
 }

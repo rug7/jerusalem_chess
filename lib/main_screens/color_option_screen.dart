@@ -151,7 +151,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
 
-                      child: Padding(
+                      child: Padding( 
                         padding: const EdgeInsets.all(8.0),
                         child: Center(
                           child: Text(

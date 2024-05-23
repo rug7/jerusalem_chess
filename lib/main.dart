@@ -6,6 +6,7 @@ import 'package:flutter_chess_1/main_screens/about_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
 import 'package:flutter_chess_1/main_screens/home_screen.dart';
+import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
@@ -22,6 +23,8 @@ void main()async {
       providers: [
         ChangeNotifierProvider(create: (_) => GameProvider()),
         ChangeNotifierProvider(create: (_) => ThemeLanguageProvider()),
+        ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
+
       ],
         child: const MyApp()),
   );

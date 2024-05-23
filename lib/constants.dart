@@ -1,5 +1,6 @@
 class Constants {
   static const String custom = 'Custom';
+  static const String arabicCustom ='مخصص';
 
   static const String homeScreen = '/homeScreen';
   static const String gameScreen = '/gameScreen';
@@ -12,6 +13,12 @@ class Constants {
   static const String signUpScreen = '/signUpScreen';
   static const String userInformationScreen = 'userInformationScreen';
 
+  static const String uid = 'uid';
+  static const String name = 'name';
+  static const String image = 'image';
+  static const String email = 'email';
+  static const String createdAt = 'createdAt';
+
 
 
 
@@ -22,4 +29,11 @@ enum PlayerColor{
 }
 enum GameDifficulty{
   easy , medium, hard
+}
+
+enum SignType{
+  emailAndPassword,
+  guest,
+  google,
+  facebook,
 }

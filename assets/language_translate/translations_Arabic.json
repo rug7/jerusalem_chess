@@ -25,6 +25,18 @@
   "signup": "إنشاء حساب",
   "yourName": "أدخل أسمك",
   "sign_in": "تسجيل الدخول",
-  "gotAccount": "هل لديك حساب ؟"
+  "gotAccount": "هل لديك حساب ؟",
+
+  "nameValidator": "الرجاء إدخال اسمك",
+  "nameLenValidator": "يجب أن يكون اسمك على الأقل 3 أحرف",
+
+  "emailValidator": "الرجاء إدخال بريدك الإلكتروني",
+  "emailNotValid": "الرجاء إدخال بريد إلكتروني صالح",
+  "emailLenValidator": "يجب أن يكون بريدك الإلكتروني على الأقل 3 أحرف",
+
+  "passwordValidator": "الرجاء إدخال كلمة مرور",
+  "passwordLenValidator": "يجب أن تكون كلمة المرور على الأقل 5 أحرف"
+
+
 
 }

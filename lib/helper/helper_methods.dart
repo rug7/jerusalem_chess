@@ -128,3 +128,11 @@ Future<File?> pickImage({
   }
   return fileImage;
 }
+
+//validate email method
+bool validateEmail(String email){
+  //Regular expression for email validation
+  final RegExp emailRegExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+  //check if the email matches the regular expression
+  return emailRegExp.hasMatch(email);
+}

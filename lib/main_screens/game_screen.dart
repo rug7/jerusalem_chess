@@ -215,7 +215,7 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       stockfish:stockfish,
       onNewGame:(){
-        ////start new game
+        gameProvider.resetGame(newGame: true);
       },
     );
   }

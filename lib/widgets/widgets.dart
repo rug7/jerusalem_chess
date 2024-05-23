@@ -60,7 +60,7 @@ class BuildCustomTime extends StatelessWidget {
       children: [
         InkWell(
             onTap: time == '0' ? null : onLeftClick,
-            child: const Icon(Icons.arrow_back)),
+            child: const Icon(Icons.arrow_back_ios)),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -84,7 +84,7 @@ class BuildCustomTime extends StatelessWidget {
         ),
         InkWell(
           onTap: onRightClick,
-            child: const Icon(Icons.arrow_forward)),
+            child: const Icon(Icons.arrow_forward_ios)),
 
       ],
     );

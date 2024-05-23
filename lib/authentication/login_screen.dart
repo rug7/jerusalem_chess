@@ -140,6 +140,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Directionality(
                   textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
                   child: TextFormField(
+                    textInputAction: TextInputAction.next,
+                    maxLines: 1,
                     style: TextStyle(color: oppColor),
                     decoration: textFormDecoration.copyWith(
                       labelText: getTranslation('yourEmail', _translations),
@@ -152,6 +154,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Directionality(
                   textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
                   child: TextFormField(
+                    textInputAction: TextInputAction.done,
+                    maxLines: 1,
                     style: TextStyle(color: oppColor),
                     textAlign: textAlignCheck,
                     textDirection: textDirectionCheck,
