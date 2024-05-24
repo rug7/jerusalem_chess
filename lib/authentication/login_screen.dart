@@ -85,6 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if(userCredential != null){
         //user created - save to firestore
         print ('user created: ${userCredential.user!.uid}');
+        print('test for commit');
+
 
       }
     }

@@ -7,6 +7,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/models/user_model.dart';
+import 'package:flutter/material.dart';
+
 
 class AuthenticationProvider extends ChangeNotifier{
   bool _isLoading = false;
