@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
 import 'package:flutter_chess_1/helper/helper_methods.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_chess_1/widgets/widgets.dart';
 import 'package:provider/provider.dart';
 import '../main_screens/color_option_screen.dart';
 import '../main_screens/home_screen.dart';
+import '../models/user_model.dart';
+import '../providers/authentication_provider.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/social_button.dart';
 //TODO validation for the game time and stop stockfish!!
@@ -21,6 +24,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   late Map<String, dynamic> _translations;
   late ThemeLanguageProvider _themeLanguageProvider;
+  late String email;
+  late String password;
+  bool obscureText = true;
+
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -59,8 +67,46 @@ class _LoginScreenState extends State<LoginScreen> {
     _loadTranslations(); // Reload translations when the language changes
   }
 
+
+
+  //sign in user in fireStore
+  void signInUser()async{
+    final authProvider = context.read<AuthenticationProvider>();
+
+    if(formKey.currentState!.validate()){
+      //save the form
+      formKey.currentState!.save();
+
+      UserCredential? userCredential = await authProvider
+          .createUserWithEmailAndPassword(
+          email: email,
+          password: password
+      );
+      if(userCredential != null){
+        //user created - save to firestore
+        print ('user created: ${userCredential.user!.uid}');
+
+      }
+    }
+    else{
+      showSnackBar(context: context, content: 'Please fill all fields');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
+
     final isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
     final oppColor = isLightMode ? Colors.black : Colors.white;
@@ -147,6 +193,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       labelText: getTranslation('yourEmail', _translations),
                       hintText: getTranslation('yourEmail', _translations),
                     ),
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return getTranslation('emailValidator', _translations);
+                      }
+                      else if(value.length < 3){
+                        return getTranslation('emailLenValidator', _translations);
+                      }
+                      else if(!validateEmail(value)){
+                        return getTranslation('emailNotValid', _translations);
+                      }
+                      else if(validateEmail(value)){
+                        return null;
+                      }
+                      return null;
+                    },
+                    onChanged: (value){
+                      email = value.trim();
+                    },
                   ),
                 ),
 
@@ -160,10 +224,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: textAlignCheck,
                     textDirection: textDirectionCheck,
                     decoration: textFormDecoration.copyWith(
+                      counterText: '',
                       labelText: getTranslation('yourPass', _translations),
                       hintText: getTranslation('yourPass', _translations),
+                      suffixIcon: IconButton(
+                        onPressed: (){
+                          setState(() {
+                            obscureText = !obscureText;
+                          });
+                        }, icon: Icon(
+                        obscureText ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      ),
                     ),
-                    obscureText: true,
+                    obscureText: obscureText,
+                    //TODO majd you need to replace the return and make it dynamically
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return  getTranslation('passwordValidator', _translations);
+                      }
+                      else if(value.length < 5){
+                        return getTranslation('passwordLenValidator', _translations);
+                      }
+                      return null;
+                    },
+                    onChanged: (value){
+                      password = value;
+                    },
                   ),
                 ),
                 const SizedBox(height: 10,),
@@ -181,6 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 10,),
+                authProvider.isLoading ? const CircularProgressIndicator() :
                 MainAuthButton(
                     label: getTranslation('login', _translations),
                     onPressed: (){},

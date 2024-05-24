@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
 import 'package:flutter_chess_1/constants.dart';
+import 'package:flutter_chess_1/main_screens/home_screen.dart';
+import 'package:flutter_chess_1/models/user_model.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:provider/provider.dart';
@@ -155,12 +157,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   //signUp user in fireStore
   void signUpUser()async{
+    final authProvider = context.read<AuthenticationProvider>();
+
     if(formKey.currentState!.validate()){
       //save the form
       formKey.currentState!.save();
 
-      UserCredential? userCredential = await context
-          .read<AuthenticationProvider>()
+      UserCredential? userCredential = await authProvider
           .createUserWithEmailAndPassword(
           email: email,
           password: password
@@ -168,6 +171,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if(userCredential != null){
         //user created - save to firestore
         print ('user created: ${userCredential.user!.uid}');
+
+        UserModel userModel = UserModel(
+            uid: userCredential.user!.uid,
+            name: name,
+            email: email,
+            image: '',
+            createdAt: ''
+        );
+
+        authProvider.saveUserDataToFireStore(
+            currentUser: userModel,
+            fileImage: finalFileImage,
+            onSuccess: ()async{
+              formKey.currentState!.reset();
+
+              //sign out the user and navigate to the login screen
+              showSnackBar(context: context, content: 'Signed Up Successfully , Please Log In');
+
+              await authProvider.sighOutUser().whenComplete((){
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      (Route<dynamic> route) => false,
+                );
+              });
+
+
+            },
+            onFail: (error){
+              showSnackBar(context: context, content: error.toString());
+            }
+        );
 
       }
 
@@ -183,6 +218,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     final isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
     final oppColor = isLightMode ? Colors.black : Colors.white;
@@ -432,6 +468,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 20,),
+                  authProvider.isLoading ? const CircularProgressIndicator() :
                   MainAuthButton(
                       label: getTranslation('signup', _translations),
                       onPressed: (){
