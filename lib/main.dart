@@ -55,7 +55,6 @@ class MyApp extends StatelessWidget {
         Constants.loginScreen: (context) => const LoginScreen(),
         Constants.signUpScreen: (context) => const SignUpScreen(),
 
-
         // Constants.signUpScreen: (context) => const SignUp
       },
     );

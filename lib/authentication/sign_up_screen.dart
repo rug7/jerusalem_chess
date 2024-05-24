@@ -171,7 +171,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if(userCredential != null){
         //user created - save to firestore
         print ('user created: ${userCredential.user!.uid}');
-        print('test for commit');
 
         UserModel userModel = UserModel(
             uid: userCredential.user!.uid,

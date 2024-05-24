@@ -1,5 +1,4 @@
 import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter/material.dart';
 
 class UserModel{
   String uid;
