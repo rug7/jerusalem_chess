@@ -104,7 +104,7 @@ class CustomBoardTheme {
   );
 
   static const blackGrey = CustomBoardTheme(
-    lightSquare: Color(0xfff0f5f7),
+    lightSquare: Color(0xffc8bfd8),
     darkSquare: Color(0xff000000),
     check: Color(0xffeb5160),
     checkmate: Colors.orange,
@@ -124,8 +124,8 @@ class CustomBoardTheme {
     logo: AssetImage('assets/images/stockfish_1.png'),
   );
   static const goldPurple = CustomBoardTheme(
-    lightSquare: Color(0xfff0c230),
-    darkSquare: Color(0xff422969),
+    lightSquare: Color(0xffc8bfd8),
+    darkSquare: Color(0xff4e3c96),
     check: Color(0xffeb5160),
     checkmate: Colors.orange,
     previous: Color(0x809bc700),

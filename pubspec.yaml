@@ -48,6 +48,7 @@ dependencies:
   image_cropper: ^6.0.0
   image_picker: ^1.1.1
   lottie: ^3.1.2
+  shared_preferences: ^2.2.3
 
   equatable: any
 dev_dependencies:
@@ -77,6 +78,8 @@ flutter:
     - assets/images/
     - assets/language_translate/translations_Arabic.json
     - assets/language_translate/translations_English.json
+    - assets/animations/signUpLoading.json
+    - assets/animations/landing.json
   #   - piece_sets.pieces_sets.images.pieces_sets.images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

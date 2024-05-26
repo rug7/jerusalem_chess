@@ -26,7 +26,7 @@ class GameProvider extends ChangeNotifier{
   int _whiteScore = 0;
   int _blackScore = 0;
   int _incrementalValue = 0;
-
+  //TODO check stockfish
   PlayerColor _playerColor = PlayerColor.white;
   GameDifficulty _gameDifficulty = GameDifficulty.easy;
 

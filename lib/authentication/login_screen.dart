@@ -78,13 +78,37 @@ class _LoginScreenState extends State<LoginScreen> {
       formKey.currentState!.save();
 
       UserCredential? userCredential = await authProvider
-          .createUserWithEmailAndPassword(
+          .signInUserWithEmailAndPassword(
           email: email,
           password: password
       );
       if(userCredential != null){
-        //user created - save to firestore
-        print ('user created: ${userCredential.user!.uid}');
+       //check if this user exists in firestore
+        bool userExist = await authProvider.checkUserExists();
+
+        if(userExist){
+          //get user's data from firestore
+          await authProvider.getUserDataFromFireStore();
+
+          //save user data to shared preferences -- local storage
+
+          await authProvider.saveUserDataToSharedPref();
+
+
+          //save this user as signed in
+
+          await authProvider.setSignedIn();
+          formKey.currentState!.reset();
+
+          authProvider.setIsLoading(value: false);
+
+          //navigate to home screen
+
+          navigate(isSignedIn: true);
+        }else{
+          //navigate to user information
+          navigate(isSignedIn: false);
+        }
 
 
       }
@@ -94,13 +118,18 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
-
-
-
-
-
-
+  navigate({required bool isSignedIn}){
+    if(isSignedIn){
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (Route<dynamic> route) => false,
+      );
+    }
+    else{
+      //navigate to user information screen
+    }
+  }
 
 
 
@@ -152,192 +181,197 @@ class _LoginScreenState extends State<LoginScreen> {
               vertical: 15,
               horizontal: 20,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                InkWell(
-                  onTap: (){
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: (){
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false,
+                      );
+                    },
+                    child: SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: Image.asset(
+                        'assets/images/black_login_logo.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    getTranslation('login', _translations),
+                    style: TextStyle(
+                        color: oppColor,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Directionality(
+                    textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                    child: TextFormField(
+                      textInputAction: TextInputAction.next,
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      decoration: textFormDecoration.copyWith(
+                        labelText: getTranslation('yourEmail', _translations),
+                        hintText: getTranslation('yourEmail', _translations),
+                      ),
+                      validator: (value){
+                        if(value!.isEmpty){
+                          return getTranslation('emailValidator', _translations);
+                        }
+                        else if(value.length < 3){
+                          return getTranslation('emailLenValidator', _translations);
+                        }
+                        else if(!validateEmail(value)){
+                          return getTranslation('emailNotValid', _translations);
+                        }
+                        else if(validateEmail(value)){
+                          return null;
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        email = value.trim();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 10,),
+                  Directionality(
+                    textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                    child: TextFormField(
+                      textInputAction: TextInputAction.done,
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      textAlign: textAlignCheck,
+                      textDirection: textDirectionCheck,
+                      decoration: textFormDecoration.copyWith(
+                        counterText: '',
+                        labelText: getTranslation('yourPass', _translations),
+                        hintText: getTranslation('yourPass', _translations),
+                        suffixIcon: IconButton(
+                          onPressed: (){
+                            setState(() {
+                              obscureText = !obscureText;
+                            });
+                          }, icon: Icon(
+                          obscureText ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        ),
+                      ),
+                      obscureText: obscureText,
+                      //TODO majd you need to replace the return and make it dynamically
+                      validator: (value){
+                        if(value!.isEmpty){
+                          return  getTranslation('passwordValidator', _translations);
+                        }
+                        else if(value.length < 5){
+                          return getTranslation('passwordLenValidator', _translations);
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        password = value;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10,),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(onPressed: (){
+                      //forgot password method and page
+
+                    }, child: Text(
+                        getTranslation('forgotPass', _translations,),
+                        style: const TextStyle(
+                          color:Color(0xFF663d99),
+                        ),
+                    ),
+                    ),
+                  ),
+                  const SizedBox(height: 10,),
+                  authProvider.isLoading ? const CircularProgressIndicator() :
+                  MainAuthButton(
+                      label: getTranslation('login', _translations),
+                      onPressed: (){
+                        signInUser();
+                      },
+                      fontSize: 20
+                  ),
+                  const SizedBox(height: 15,),
+                  Text(
+                    getTranslation('orSocial', _translations),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: isLightMode ? Colors.black26 : Colors.white24,
+                        fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SocialButtons(
+                          label: getTranslation('facebook', _translations),
+                          assetImage: 'assets/images/facebook_logo.png',
+                          height: 55.0,
+                          width: 55.0,
+                          onTap: (){
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          }
+                      ),
+                      SocialButtons(
+                          label: getTranslation('email', _translations),
+                          assetImage: 'assets/images/email_logo.png',
+                          height: 55.0,
+                          width: 55.0,
+                          onTap: (){
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          }
+                      ),
+                      SocialButtons(
+                          label: getTranslation('phone', _translations),
+                          assetImage: 'assets/images/Phone_logo.png',
+                          height: 55.0,
+                          width: 55.0,
+                          onTap: (){
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          }
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30,),
+                  HaveAccountWidget(label: getTranslation('noAccount', _translations),labelAction: getTranslation('signup', _translations), onPressed: (){
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      MaterialPageRoute(builder: (context) => const SignUpScreen()),
                           (Route<dynamic> route) => false,
                     );
-                  },
-                  child: SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: Image.asset(
-                      'assets/images/black_login_logo.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                Text(
-                  getTranslation('login', _translations),
-                  style: TextStyle(
-                      color: oppColor,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Directionality(
-                  textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
-                  child: TextFormField(
-                    textInputAction: TextInputAction.next,
-                    maxLines: 1,
-                    style: TextStyle(color: oppColor),
-                    decoration: textFormDecoration.copyWith(
-                      labelText: getTranslation('yourEmail', _translations),
-                      hintText: getTranslation('yourEmail', _translations),
-                    ),
-                    validator: (value){
-                      if(value!.isEmpty){
-                        return getTranslation('emailValidator', _translations);
-                      }
-                      else if(value.length < 3){
-                        return getTranslation('emailLenValidator', _translations);
-                      }
-                      else if(!validateEmail(value)){
-                        return getTranslation('emailNotValid', _translations);
-                      }
-                      else if(validateEmail(value)){
-                        return null;
-                      }
-                      return null;
-                    },
-                    onChanged: (value){
-                      email = value.trim();
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 10,),
-                Directionality(
-                  textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
-                  child: TextFormField(
-                    textInputAction: TextInputAction.done,
-                    maxLines: 1,
-                    style: TextStyle(color: oppColor),
-                    textAlign: textAlignCheck,
-                    textDirection: textDirectionCheck,
-                    decoration: textFormDecoration.copyWith(
-                      counterText: '',
-                      labelText: getTranslation('yourPass', _translations),
-                      hintText: getTranslation('yourPass', _translations),
-                      suffixIcon: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            obscureText = !obscureText;
-                          });
-                        }, icon: Icon(
-                        obscureText ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      ),
-                    ),
-                    obscureText: obscureText,
-                    //TODO majd you need to replace the return and make it dynamically
-                    validator: (value){
-                      if(value!.isEmpty){
-                        return  getTranslation('passwordValidator', _translations);
-                      }
-                      else if(value.length < 5){
-                        return getTranslation('passwordLenValidator', _translations);
-                      }
-                      return null;
-                    },
-                    onChanged: (value){
-                      password = value;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10,),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(onPressed: (){
-                    //forgot password method and page
-
-                  }, child: Text(
-                      getTranslation('forgotPass', _translations,),
-                      style: const TextStyle(
-                        color:Color(0xFF663d99),
-                      ),
-                  ),
-                  ),
-                ),
-                const SizedBox(height: 10,),
-                authProvider.isLoading ? const CircularProgressIndicator() :
-                MainAuthButton(
-                    label: getTranslation('login', _translations),
-                    onPressed: (){},
-                    fontSize: 20
-                ),
-                const SizedBox(height: 15,),
-                Text(
-                  getTranslation('orSocial', _translations),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: isLightMode ? Colors.black26 : Colors.white24,
-                      fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 15,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    SocialButtons(
-                        label: getTranslation('facebook', _translations),
-                        assetImage: 'assets/images/facebook_logo.png',
-                        height: 55.0,
-                        width: 55.0,
-                        onTap: (){
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                (Route<dynamic> route) => false,
-                          );
-                        }
-                    ),
-                    SocialButtons(
-                        label: getTranslation('email', _translations),
-                        assetImage: 'assets/images/email_logo.png',
-                        height: 55.0,
-                        width: 55.0,
-                        onTap: (){
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                (Route<dynamic> route) => false,
-                          );
-                        }
-                    ),
-                    SocialButtons(
-                        label: getTranslation('phone', _translations),
-                        assetImage: 'assets/images/Phone_logo.png',
-                        height: 55.0,
-                        width: 55.0,
-                        onTap: (){
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                (Route<dynamic> route) => false,
-                          );
-                        }
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30,),
-                HaveAccountWidget(label: getTranslation('noAccount', _translations),labelAction: getTranslation('signup', _translations), onPressed: (){
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                        (Route<dynamic> route) => false,
-                  );
-                }),
-              ],
+                  }),
+                ],
+              ),
             ),
           ),
        ),

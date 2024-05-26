@@ -12,6 +12,7 @@ class Constants {
   static const String gameTimeScreen = '/gameTimeScreen';
   static const String loginScreen = '/loginScreen';
   static const String signUpScreen = '/signUpScreen';
+
   static const String userInformationScreen = 'userInformationScreen';
 
   static const String uid = 'uid';
@@ -22,6 +23,12 @@ class Constants {
 
   static const String userImages = 'userImages';
   static const String users = 'users';
+
+  static const String userModel = 'userModel';
+  static const String isSignedIn = 'isSignedIn';
+
+
+
 
 
 

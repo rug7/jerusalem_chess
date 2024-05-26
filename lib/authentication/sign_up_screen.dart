@@ -8,6 +8,7 @@ import 'package:flutter_chess_1/main_screens/home_screen.dart';
 import 'package:flutter_chess_1/models/user_model.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../main_screens/color_option_screen.dart';
@@ -187,7 +188,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               formKey.currentState!.reset();
 
               //sign out the user and navigate to the login screen
-              showSnackBar(context: context, content: 'Signed Up Successfully , Please Log In');
+              showSnackBar(context: context, content: 'Signed Up Successfully');
 
               await authProvider.sighOutUser().whenComplete((){
                 Navigator.pushAndRemoveUntil(
@@ -212,8 +213,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showSnackBar(context: context, content: 'Please fill all fields');
     }
   }
-
-
 
 
   @override
@@ -457,7 +456,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         if(value!.isEmpty){
                           return  getTranslation('passwordValidator', _translations);
                         }
-                        else if(value.length < 5){
+                        else if(value.length < 8){
                           return getTranslation('passwordLenValidator', _translations);
                         }
                         return null;
@@ -468,7 +467,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 20,),
-                  authProvider.isLoading ? const CircularProgressIndicator() :
+                  authProvider.isLoading ?  // Set the color to transparent to allow the animation to be full screen
+                  Lottie.asset(
+                      'assets/animations/signUpLoading.json',height: 100,width: 100,
+                  )
+                      :
                   MainAuthButton(
                       label: getTranslation('signup', _translations),
                       onPressed: (){

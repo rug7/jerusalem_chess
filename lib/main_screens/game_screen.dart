@@ -20,6 +20,7 @@ class GameScreen extends StatefulWidget {
 }
 class _GameScreenState extends State<GameScreen> {
   late Stockfish stockfish;
+  List<String> moves = [];
   @override
   void initState() {
     stockfish = Stockfish();
@@ -369,6 +370,7 @@ class _GameScreenState extends State<GameScreen> {
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
+                  
               
               
                 ],

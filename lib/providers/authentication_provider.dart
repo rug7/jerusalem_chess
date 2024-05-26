@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class AuthenticationProvider extends ChangeNotifier{
@@ -27,10 +29,6 @@ class AuthenticationProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-  void setIsSignedIn({required bool value}){
-    _isSignedIn = value;
-    notifyListeners();
-  }
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -61,6 +59,66 @@ class AuthenticationProvider extends ChangeNotifier{
     notifyListeners();
 
     return userCredential;
+  }
+
+  //check if the user exists
+  Future<bool> checkUserExists() async{
+    DocumentSnapshot  documentSnapshot = await firebaseFirestore.collection(Constants.users).doc(uid).get();
+
+    if(documentSnapshot.exists){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  //get user data from firestore
+  Future getUserDataFromFireStore() async {
+    await firebaseFirestore
+        .collection(Constants.users)
+        .doc(firebaseAuth.currentUser!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot){
+      _userModel = UserModel.fromMap(documentSnapshot.data() as Map<String,dynamic>);
+      _uid = _userModel!.uid;
+      notifyListeners();
+    });
+  }
+  
+  //store user data to shared preferences
+  Future saveUserDataToSharedPref() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString(
+        Constants.userModel,
+        jsonEncode(userModel!.toMap()
+        ));
+  }
+
+
+  //get user data to shared preferences
+  Future getUserDataToSharedPref() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String data = sharedPreferences.getString(Constants.userModel) ?? '';
+    
+    _userModel = UserModel.fromMap(jsonDecode(data));
+    _uid = _userModel!.uid;
+    notifyListeners();
+  }
+
+  //set user as signed in
+  Future setSignedIn() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setBool(Constants.isSignedIn, true);
+    _isSignedIn = true;
+    notifyListeners();
+  }
+
+  //set user as signed in
+  Future<bool> checkIsSignedIn() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    _isSignedIn = sharedPreferences.getBool(Constants.isSignedIn) ?? false;
+    notifyListeners();
+    return _isSignedIn;
   }
 
 
@@ -117,7 +175,11 @@ class AuthenticationProvider extends ChangeNotifier{
   }
 
   Future<void> sighOutUser()async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     await firebaseAuth.signOut();
+    _isSignedIn = false;
+    sharedPreferences.clear();
+    notifyListeners();
   }
 
 }

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chess_1/authentication/landing_screen.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
 import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
 import 'package:flutter_chess_1/main_screens/about_screen.dart';
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData.dark(),
       themeMode: themeProvider.useSystemTheme ? ThemeMode.system : (themeProvider.isLightMode ? ThemeMode.light : ThemeMode.dark),
       // home: const HomeScreen(),
-      initialRoute: Constants.loginScreen,
+      initialRoute: Constants.landingScreen,
       routes: {
         Constants.homeScreen: (context) => const HomeScreen(),
         Constants.gameScreen: (context) => const GameScreen(),
@@ -54,6 +55,8 @@ class MyApp extends StatelessWidget {
         Constants.gameTimeScreen: (context) => const GameTimeScreen(),
         Constants.loginScreen: (context) => const LoginScreen(),
         Constants.signUpScreen: (context) => const SignUpScreen(),
+        Constants.landingScreen: (context) => const LandingScreen(),
+
 
         // Constants.signUpScreen: (context) => const SignUp
       },
