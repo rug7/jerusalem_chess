@@ -6,6 +6,8 @@ class Constants {
   static const String homeScreen = '/homeScreen';
   static const String gameScreen = '/gameScreen';
   static const String landingScreen = '/landingScreen';
+  static const String loadingScreen = '/loadingScreen';
+
   static const String settingScreen = '/settingScreen';
   static const String aboutScreen = '/aboutScreen';
   static const String colorOptionScreen = '/colorOptionScreen';

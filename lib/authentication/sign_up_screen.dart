@@ -15,6 +15,8 @@ import '../main_screens/color_option_screen.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/main_auth_button.dart';
 import '../widgets/widgets.dart';
+import 'landing_screen.dart';
+import 'loading.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -157,62 +159,153 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   //signUp user in fireStore
-  void signUpUser()async{
+  // signUp user in fireStore
+  // void signUpUser() async {
+  //   final authProvider = context.read<AuthenticationProvider>();
+  //
+  //   if (formKey.currentState!.validate()) {
+  //     // Save the form
+  //     formKey.currentState!.save();
+  //
+  //     try {
+  //       UserCredential? userCredential = await authProvider.createUserWithEmailAndPassword(
+  //         email: email,
+  //         password: password,
+  //       );
+  //
+  //       if (userCredential != null) {
+  //         // User created - save to firestore
+  //         print('User created: ${userCredential.user!.uid}');
+  //
+  //         UserModel userModel = UserModel(
+  //           uid: userCredential.user!.uid,
+  //           name: name,
+  //           email: email,
+  //           image: '',
+  //           createdAt: '',
+  //         );
+  //
+  //         authProvider.saveUserDataToFireStore(
+  //           currentUser: userModel,
+  //           fileImage: finalFileImage,
+  //           onSuccess: () async {
+  //             formKey.currentState!.reset();
+  //
+  //             // Sign out the user and navigate to the login screen
+  //             authProvider.showSnackBar(context: context, content: 'Signed Up Successfully',color: Colors.green);
+  //
+  //             await authProvider.sighOutUser().whenComplete(() {
+  //               Navigator.pushAndRemoveUntil(
+  //                 context,
+  //                 MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //                     (Route<dynamic> route) => false,
+  //               );
+  //             });
+  //           },
+  //           onFail: (error) {
+  //             authProvider.showSnackBar(context: context, content: error.toString());
+  //           },
+  //         );
+  //       }
+  //     } on FirebaseAuthException catch (e) {
+  //       if (e.code == 'email-already-in-use') {
+  //         // Handle the case where the user's email already exists
+  //         authProvider.showSnackBar(context: context, content: 'The email address is already in use.',color: Colors.red);
+  //       } else {
+  //         // Handle other FirebaseAuthExceptions
+  //         authProvider.showSnackBar(context: context, content: 'Sign up failed. ${e.message}',color: Colors.red);
+  //       }
+  //       authProvider.setIsLoading(value: false);
+  //     } catch (e) {
+  //       // Handle other exceptions
+  //       authProvider.showSnackBar(context: context, content: 'Sign up failed. $e',color: Colors.red);
+  //     }
+  //   } else {
+  //     authProvider.showSnackBar(context: context, content: 'Please fill all fields',color: Colors.red);
+  //   }
+  // }
+
+  // signUp user in fireStore
+  void signUpUser() async {
     final authProvider = context.read<AuthenticationProvider>();
 
-    if(formKey.currentState!.validate()){
-      //save the form
+    if (formKey.currentState!.validate()) {
+      // Save the form
       formKey.currentState!.save();
 
-      UserCredential? userCredential = await authProvider
-          .createUserWithEmailAndPassword(
-          email: email,
-          password: password
-      );
-      if(userCredential != null){
-        //user created - save to firestore
-        print ('user created: ${userCredential.user!.uid}');
+      try {
 
-        UserModel userModel = UserModel(
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoadingScreen()),
+        );
+        // Set loading state to true
+        authProvider.setIsLoading(value: true);
+
+        UserCredential? userCredential = await authProvider.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        if (userCredential != null) {
+          // User created - save to firestore
+          print('User created: ${userCredential.user!.uid}');
+
+          UserModel userModel = UserModel(
             uid: userCredential.user!.uid,
             name: name,
             email: email,
             image: '',
-            createdAt: ''
-        );
+            createdAt: '',
+          );
 
-        authProvider.saveUserDataToFireStore(
+          authProvider.saveUserDataToFireStore(
             currentUser: userModel,
             fileImage: finalFileImage,
-            onSuccess: ()async{
+            onSuccess: () async {
+
+
               formKey.currentState!.reset();
 
-              //sign out the user and navigate to the login screen
-              showSnackBar(context: context, content: 'Signed Up Successfully');
+              // Sign out the user and navigate to the login screen
+              authProvider.showSnackBar(context: context, content: 'Signed Up Successfully',color: Colors.green);
 
-              await authProvider.sighOutUser().whenComplete((){
+              await authProvider.sighOutUser().whenComplete(() {
+                // Navigate to the home screen
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const HomeScreen()),
                       (Route<dynamic> route) => false,
                 );
               });
-
-
             },
-            onFail: (error){
-              showSnackBar(context: context, content: error.toString());
-            }
-        );
-
+            onFail: (error) {
+              // Show error snackbar
+              authProvider.showSnackBar(context: context, content: error.toString(),color: Colors.red);
+            },
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          // Handle the case where the user's email already exists
+          authProvider.showSnackBar(context: context, content: 'The email address is already in use.',color: Colors.red);
+        } else {
+          // Handle other FirebaseAuthExceptions
+          authProvider.showSnackBar(context: context, content: 'Sign up failed. ${e.message}',color: Colors.red);
+        }
+      } catch (e) {
+        // Handle other exceptions
+        authProvider.showSnackBar(context: context, content: 'Sign up failed. $e',color: Colors.red);
+      } finally {
+        // Set loading state to false
+        authProvider.setIsLoading(value: false);
       }
-
-      //sign up the user
-    }
-    else{
-      showSnackBar(context: context, content: 'Please fill all fields');
+    } else {
+      authProvider.showSnackBar(context: context, content: 'Please fill all fields',color: Colors.red);
     }
   }
+
+
 
 
   @override

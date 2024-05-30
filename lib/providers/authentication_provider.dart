@@ -182,5 +182,13 @@ class AuthenticationProvider extends ChangeNotifier{
     notifyListeners();
   }
 
+  void showSnackBar({required BuildContext context, required String content,  Color? color}) {
+    final snackBar = SnackBar(
+      content: Text(content),
+      backgroundColor: color,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
 }
 

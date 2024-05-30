@@ -12,6 +12,7 @@ import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
 
+import 'authentication/loading.dart';
 import 'constants.dart';
 import 'firebase_options.dart';
 
@@ -56,6 +57,9 @@ class MyApp extends StatelessWidget {
         Constants.loginScreen: (context) => const LoginScreen(),
         Constants.signUpScreen: (context) => const SignUpScreen(),
         Constants.landingScreen: (context) => const LandingScreen(),
+        Constants.loadingScreen: (context) => const LoadingScreen(),
+
+
 
 
         // Constants.signUpScreen: (context) => const SignUp

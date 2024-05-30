@@ -68,55 +68,71 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 
-
-  //sign in user in fireStore
-  void signInUser()async{
+  // sign in user in fireStore
+  void signInUser() async {
     final authProvider = context.read<AuthenticationProvider>();
 
-    if(formKey.currentState!.validate()){
-      //save the form
+    if (formKey.currentState!.validate()) {
+      // Save the form
       formKey.currentState!.save();
 
-      UserCredential? userCredential = await authProvider
-          .signInUserWithEmailAndPassword(
+      try {
+        UserCredential? userCredential = await authProvider.signInUserWithEmailAndPassword(
           email: email,
-          password: password
-      );
-      if(userCredential != null){
-       //check if this user exists in firestore
-        bool userExist = await authProvider.checkUserExists();
+          password: password,
+        );
 
-        if(userExist){
-          //get user's data from firestore
-          await authProvider.getUserDataFromFireStore();
+        if (userCredential != null) {
+          // Check if this user exists in Firestore
+          bool userExist = await authProvider.checkUserExists();
 
-          //save user data to shared preferences -- local storage
+          if (userExist) {
+            // Get user's data from Firestore
+            await authProvider.getUserDataFromFireStore();
 
-          await authProvider.saveUserDataToSharedPref();
+            // Save user data to shared preferences -- local storage
+            await authProvider.saveUserDataToSharedPref();
 
+            // Save this user as signed in
+            await authProvider.setSignedIn();
+            formKey.currentState!.reset();
 
-          //save this user as signed in
+            authProvider.setIsLoading(value: false);
 
-          await authProvider.setSignedIn();
-          formKey.currentState!.reset();
-
-          authProvider.setIsLoading(value: false);
-
-          //navigate to home screen
-
-          navigate(isSignedIn: true);
-        }else{
-          //navigate to user information
-          navigate(isSignedIn: false);
+            // Navigate to home screen
+            navigate(isSignedIn: true);
+          } else {
+            // Navigate to user information screen
+            navigate(isSignedIn: false);
+          }
+        }
+      } on FirebaseAuthException catch (e) {
+        // Handle different authentication exceptions
+        if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+          // Show red notification for incorrect email or password
+          authProvider.showSnackBar(context: context, content: 'Incorrect email or password', color: Colors.red);
+        } else {
+          authProvider.showSnackBar(context: context, content: 'Incorrect email or password', color: Colors.red);
         }
 
+        // Stop the loading indicator
+        authProvider.setIsLoading(value: false);
+      } catch (e) {
+        // Handle other exceptions
+        authProvider.showSnackBar(context: context, content: 'Error occurred: $e', color: Colors.red);
 
+        // Stop the loading indicator
+        authProvider.setIsLoading(value: false);
       }
-    }
-    else{
-      showSnackBar(context: context, content: 'Please fill all fields');
+    } else {
+      authProvider.showSnackBar(context: context, content: 'Please fill all fields', color: Colors.red);
     }
   }
+
+
+
+
+
 
   navigate({required bool isSignedIn}){
     if(isSignedIn){
