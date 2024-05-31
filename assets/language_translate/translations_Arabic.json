@@ -35,7 +35,19 @@
   "emailLenValidator": "يجب أن يكون بريدك الإلكتروني على الأقل 3 أحرف",
 
   "passwordValidator": "الرجاء إدخال كلمة مرور",
-  "passwordLenValidator": "يجب أن تكون كلمة المرور على الأقل 5 أحرف"
+  "passwordLenValidator": "يجب أن تكون كلمة المرور على الأقل 8 أحرف",
+
+  "fillFields": "يرجى ملئ جميع الحقول.",
+  "emailAuth": "عنوان البريد الإلكتروني مستخدم بالفعل.",
+  "signUpAuth": "فشل التسجيل.",
+  "signUpSuccess": "تم التسجيل بنجاح.",
+
+  "incEmailOrPass": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "errorOccurred": "حدث خطأ:"
+
+
+
+
 
 
 

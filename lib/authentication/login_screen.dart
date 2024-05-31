@@ -7,7 +7,6 @@ import 'package:flutter_chess_1/widgets/widgets.dart';
 import 'package:provider/provider.dart';
 import '../main_screens/color_option_screen.dart';
 import '../main_screens/home_screen.dart';
-import '../models/user_model.dart';
 import '../providers/authentication_provider.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/social_button.dart';
@@ -110,22 +109,22 @@ class _LoginScreenState extends State<LoginScreen> {
         // Handle different authentication exceptions
         if (e.code == 'user-not-found' || e.code == 'wrong-password') {
           // Show red notification for incorrect email or password
-          authProvider.showSnackBar(context: context, content: 'Incorrect email or password', color: Colors.red);
+          authProvider.showSnackBar(context: context, content: getTranslation('incEmailOrPass', _translations), color: Colors.red);
         } else {
-          authProvider.showSnackBar(context: context, content: 'Incorrect email or password', color: Colors.red);
+          authProvider.showSnackBar(context: context, content: getTranslation('incEmailOrPass', _translations), color: Colors.red);
         }
 
         // Stop the loading indicator
         authProvider.setIsLoading(value: false);
       } catch (e) {
         // Handle other exceptions
-        authProvider.showSnackBar(context: context, content: 'Error occurred: $e', color: Colors.red);
+        authProvider.showSnackBar(context: context, content: '${getTranslation('errorOccurred',_translations)} $e', color: Colors.red);
 
         // Stop the loading indicator
         authProvider.setIsLoading(value: false);
       }
     } else {
-      authProvider.showSnackBar(context: context, content: 'Please fill all fields', color: Colors.red);
+      authProvider.showSnackBar(context: context, content: getTranslation('fillFields', _translations), color: Colors.red);
     }
   }
 

@@ -35,7 +35,16 @@
   "emailLenValidator": "Your email must be at least 3 characters",
 
   "passwordValidator": "Please enter a password",
-  "passwordLenValidator": "Your name must be at least 5 characters"
+  "passwordLenValidator": "Your name must be at least 5 characters",
+
+  "fillFields": "Please fill all fields.",
+  "emailAuth": "The email address is already in use.",
+  "signUpAuth": "Sign up Failed.",
+  "signUpSuccess": "Signed Up Successfully",
+
+  "incEmailOrPass": "Incorrect email or password.",
+  "errorOccurred": "Error occurred:"
+
 
 
 }

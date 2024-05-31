@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
-import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/main_screens/home_screen.dart';
 import 'package:flutter_chess_1/models/user_model.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
@@ -15,7 +14,6 @@ import '../main_screens/color_option_screen.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/main_auth_button.dart';
 import '../widgets/widgets.dart';
-import 'landing_screen.dart';
 import 'loading.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -234,13 +232,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       formKey.currentState!.save();
 
       try {
-
+        // Set loading state to true
+        authProvider.setIsLoading(value: true);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const LoadingScreen()),
         );
         // Set loading state to true
-        authProvider.setIsLoading(value: true);
 
         UserCredential? userCredential = await authProvider.createUserWithEmailAndPassword(
           email: email,
@@ -249,7 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         if (userCredential != null) {
           // User created - save to firestore
-          print('User created: ${userCredential.user!.uid}');
+          //print('User created: ${userCredential.user!.uid}');
 
           UserModel userModel = UserModel(
             uid: userCredential.user!.uid,
@@ -277,31 +275,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   MaterialPageRoute(builder: (context) => const HomeScreen()),
                       (Route<dynamic> route) => false,
                 );
+
               });
             },
             onFail: (error) {
               // Show error snackbar
               authProvider.showSnackBar(context: context, content: error.toString(),color: Colors.red);
+              // Pop the loading screen
+              Navigator.pop(context);
+
+              // Set loading state to false
+              authProvider.setIsLoading(value: false);
             },
           );
         }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
+          authProvider.setIsLoading(value: false);
+          Navigator.pop(context);
           // Handle the case where the user's email already exists
-          authProvider.showSnackBar(context: context, content: 'The email address is already in use.',color: Colors.red);
+          authProvider.showSnackBar(context: context, content: getTranslation('emailAuth', _translations),color: Colors.red);
+
         } else {
+          // Set loading state to false
+          authProvider.setIsLoading(value: false);
+
+          // Pop the loading screen
+          Navigator.pop(context);
           // Handle other FirebaseAuthExceptions
-          authProvider.showSnackBar(context: context, content: 'Sign up failed. ${e.message}',color: Colors.red);
+          authProvider.showSnackBar(context: context, content: '${getTranslation('signUpAuth',_translations)} ${e.message}',color: Colors.red);
         }
       } catch (e) {
+        // Set loading state to false
+        authProvider.setIsLoading(value: false);
+
+        // Pop the loading screen
+        Navigator.pop(context);
         // Handle other exceptions
-        authProvider.showSnackBar(context: context, content: 'Sign up failed. $e',color: Colors.red);
+        authProvider.showSnackBar(context: context, content: '${getTranslation('signUpAuth',_translations)} $e',color: Colors.red);
       } finally {
         // Set loading state to false
         authProvider.setIsLoading(value: false);
       }
     } else {
-      authProvider.showSnackBar(context: context, content: 'Please fill all fields',color: Colors.red);
+
+      authProvider.showSnackBar(context: context, content: getTranslation('fillFields',_translations),color: Colors.red);
     }
   }
 
