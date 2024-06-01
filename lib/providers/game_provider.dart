@@ -113,6 +113,42 @@ class GameProvider extends ChangeNotifier{
     // Notify listeners about the state change
     // notifyListeners();
   }
+  void resetNewGame({required bool newGame}){
+    //if(newGame){
+      //TODO check here if sami wants this??????
+      // check if the player was white in the previous game
+      // change the player
+      // if(_player == Squares.white){
+      //   _player = Squares.black;
+      // }else{
+      //   _player = Squares.white;
+      // }
+    //  notifyListeners();
+    //}
+    //reset game
+    if (newGame) {
+      // Optionally switch the player color for the new game
+      _player = _player == Squares.white ? Squares.black : Squares.white;
+    }
+    // Reset game state
+    _game = bishop.Game(variant: bishop.Variant.standard());
+    _state = game.squaresState(_player);
+
+    // Reset timers
+    // _whiteTimer?.cancel();
+    // _blackTimer?.cancel();
+    // _whiteTimer = null;
+    // _blackTimer = null;
+    _whiteTime = _whiteSavedTime;
+    _blackTime = _blackSavedTime;
+
+    _aiThinking = true;
+    _flipBoard = false;
+    _playWhiteTimer = true;
+    _playBlackTimer = true;
+
+    notifyListeners();
+  }
 
   //make a move in the squares
   bool makeSquaresMove(move){
@@ -419,6 +455,8 @@ class GameProvider extends ChangeNotifier{
                 TextButton(
                   onPressed: (){
                     Navigator.pop(context);
+                    //TODO 1- to clear the moveList, 2- to make the ai start first 3- to validate 4- to save the moveList to the firebase
+                    resetNewGame(newGame: true);
                     //reset the game
                   },
                   child: const Text(
