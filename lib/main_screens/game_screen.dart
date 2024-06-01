@@ -558,7 +558,6 @@ class _GameScreenState extends State<GameScreen> {
     final gameProvider = context.read<GameProvider>();
     bool result = gameProvider.makeSquaresMove(move);
     final newMove = convertMoveFormat(move.toString()).split('-')[1];
-    print(move);
     if (result) {
       gameProvider.setSquaresState().whenComplete(() {
         if(gameProvider.player == Squares.white){
@@ -798,40 +797,48 @@ class _GameScreenState extends State<GameScreen> {
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
-                  Container(
-                    height: 200, // Fixed height for the container
-                    color: Colors.grey[850], // Dark background for the moves list
-                    child: ListView.separated(
-                      itemCount: (moveList.length + 1) ~/ 2, // Half the number of moves for two columns
-                      separatorBuilder: (_, __) => Divider(color: Colors.grey[700]), // Separator for readability
-                      itemBuilder: (context, index) {
-                        String moveWhite = moveList.length > index * 2 ? moveList[index * 2] : "";
-                        String moveBlack = moveList.length > index * 2 + 1 ? moveList[index * 2 + 1] : "";
+            if (gameProvider.showAnalysisBoard)
+              Container(
+                height: 200, // Fixed height for the container
+                color: Colors.grey[850], // Dark background for the moves list
+                child: ListView.separated(
+                  itemCount: (moveList.length + 1) ~/ 2,
+                  // Half the number of moves for two columns
+                  separatorBuilder: (_, __) => Divider(color: Colors.grey[700]),
+                  // Separator for readability
+                  itemBuilder: (context, index) {
+                    String moveWhite = moveList.length > index * 2
+                        ? moveList[index * 2]
+                        : "";
+                    String moveBlack = moveList.length > index * 2 + 1
+                        ? moveList[index * 2 + 1]
+                        : "";
 
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child:
-                              Text(
-                                "${index + 1}. $moveWhite",
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                moveBlack,
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child:
+                          Text(
+                            "${index + 1}. $moveWhite",
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 16),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            moveBlack,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 16),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
 
 
 

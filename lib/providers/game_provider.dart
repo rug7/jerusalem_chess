@@ -5,11 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/helper/uci_commands.dart';
 import 'package:bishop/bishop.dart' as bishop;
+import 'package:provider/provider.dart';
 import 'package:square_bishop/square_bishop.dart';
 import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 
 class GameProvider extends ChangeNotifier{
+  List<String> moveList = [];
+  bool showAnalysisBoard = false; // State variable to control visibility
+
+  void toggleAnalysisBoard() {
+    showAnalysisBoard = !showAnalysisBoard;
+    notifyListeners();
+  }
   late bishop.Game _game = bishop.Game(variant: bishop.Variant.standard());
   late SquaresState _state = SquaresState.initial(0);
   bool _aiThinking = false;
@@ -90,6 +98,8 @@ class GameProvider extends ChangeNotifier{
 
   //reset game
   void resetGame({required bool newGame}){
+    moveList.clear();
+    showAnalysisBoard = false;
     if(newGame){
       //TODO check here if sami wants this??????
       // check if the player was white in the previous game
@@ -114,6 +124,8 @@ class GameProvider extends ChangeNotifier{
     // notifyListeners();
   }
   void resetNewGame({required bool newGame}){
+    moveList.clear();
+    showAnalysisBoard = false;
     //if(newGame){
       //TODO check here if sami wants this??????
       // check if the player was white in the previous game
@@ -148,7 +160,9 @@ class GameProvider extends ChangeNotifier{
     _playBlackTimer = true;
 
     notifyListeners();
+
   }
+
 
   //make a move in the squares
   bool makeSquaresMove(move){
@@ -441,26 +455,47 @@ class GameProvider extends ChangeNotifier{
                 textAlign: TextAlign.center,
               ),
               actions: [
-                TextButton(
-                    onPressed: (){
-                    Navigator.pop(context);
-                    //Navigate to home Screen
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, Constants.homeScreen, (route) => false,);
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.red),),),
 
-                TextButton(
-                  onPressed: (){
-                    Navigator.pop(context);
-                    //TODO 1- to clear the moveList, 2- to make the ai start first 3- to validate 4- to save the moveList to the firebase
-                    resetNewGame(newGame: true);
-                    //reset the game
-                  },
-                  child: const Text(
-                    'New Game',),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Navigate to home Screen
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          Constants.homeScreen,
+                              (route) => false,
+                        );
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.read<GameProvider>().toggleAnalysisBoard();
+                      },
+                      child: const Text(
+                        'Analysis Board',
+                        style: TextStyle(color: Colors.orange),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                        resetNewGame(newGame: true);
+                        // reset the game
+                      },
+                      child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                    ),
+
+                  ],
+                ),
               ],
         ),);
   }
