@@ -43,7 +43,11 @@
   "signUpSuccess": "تم التسجيل بنجاح.",
 
   "incEmailOrPass": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-  "errorOccurred": "حدث خطأ:"
+  "errorOccurred": "حدث خطأ:",
+
+  "passwordMismatch": "كلمات المرور غير متطابقة",
+  "confirmPass": "أكد كلمة المرور"
+
 
 
 

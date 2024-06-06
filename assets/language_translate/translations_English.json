@@ -43,7 +43,11 @@
   "signUpSuccess": "Signed Up Successfully",
 
   "incEmailOrPass": "Incorrect email or password.",
-  "errorOccurred": "Error occurred:"
+  "errorOccurred": "Error occurred:",
+
+  "passwordMismatch": "Passwords do not match",
+  "confirmPass": "Confirm password"
+
 
 
 

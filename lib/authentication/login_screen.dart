@@ -33,6 +33,26 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _translations = {}; // Initialize translations map
+    _checkIfSignedIn();
+  }
+
+
+  Future<void> _checkIfSignedIn() async {
+    final authProvider = context.read<AuthenticationProvider>();
+
+    bool isSignedIn = await authProvider.checkIfSignedIn();
+    if (isSignedIn) {
+      navigateToHome();
+    }
+  }
+
+
+  void navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false,
+    );
   }
 
   @override

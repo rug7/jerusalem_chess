@@ -30,6 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late String name;
   late String email;
   late String password;
+  late String confirmPassword;
   bool obscureText = true;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -231,6 +232,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Save the form
       formKey.currentState!.save();
 
+      if (password != confirmPassword) {
+        authProvider.showSnackBar(context: context, content: getTranslation('passwordMismatch', _translations), color: Colors.red);
+        return;
+      }
+
       try {
         // Set loading state to true
         authProvider.setIsLoading(value: true);
@@ -264,19 +270,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
               formKey.currentState!.reset();
+              // Save user data to shared preferences
+              await authProvider.saveUserDataToSharedPref();
+
+              // Set the signed-in state
+              await authProvider.setSignedIn();
 
               // Sign out the user and navigate to the login screen
-              authProvider.showSnackBar(context: context, content: 'Signed Up Successfully',color: Colors.green);
+              authProvider.showSnackBar(context: context, content: getTranslation('signUpSuccess', _translations),color: Colors.green);
 
-              await authProvider.sighOutUser().whenComplete(() {
-                // Navigate to the home screen
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      (Route<dynamic> route) => false,
-                );
+              authProvider.setIsLoading(value: false);
 
-              });
+              // Navigate to the home screen
+              navigateToHome();
             },
             onFail: (error) {
               // Show error snackbar
@@ -321,6 +327,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       authProvider.showSnackBar(context: context, content: getTranslation('fillFields',_translations),color: Colors.red);
     }
+
+  }
+
+  void navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false,
+    );
   }
 
 
@@ -541,7 +556,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Directionality(
                     textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
                     child: TextFormField(
-                      textInputAction: TextInputAction.done,
+                      textInputAction: TextInputAction.next,
                       maxLength: 12,
                       maxLines: 1,
                       style: TextStyle(color: oppColor),
@@ -578,6 +593,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 20,),
+                  Directionality(
+                    textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                    child: TextFormField(
+                      textInputAction: TextInputAction.done,
+                      maxLength: 12,
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      textAlign: textAlignCheck,
+                      textDirection: textDirectionCheck,
+                      decoration: textFormDecoration.copyWith(
+                        counterText: '',
+                        labelText: getTranslation('confirmPass', _translations),
+                        hintText: getTranslation('confirmPass', _translations),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              obscureText = !obscureText;
+                            });
+                          },
+                          icon: Icon(
+                            obscureText ? Icons.visibility_off : Icons.visibility,
+                          ),
+                        ),
+                      ),
+                      obscureText: obscureText,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return getTranslation('passwordValidator', _translations);
+                        } else if (value.length < 8) {
+                          return getTranslation('passwordLenValidator', _translations);
+                        } else if (value != password) {
+                          return getTranslation('passwordMismatch', _translations);
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        confirmPassword = value;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+
                   authProvider.isLoading ?  // Set the color to transparent to allow the animation to be full screen
                   Lottie.asset(
                       'assets/animations/signUpLoading.json',height: 100,width: 100,

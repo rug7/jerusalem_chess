@@ -188,6 +188,12 @@ class AuthenticationProvider extends ChangeNotifier{
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+  Future<bool> checkIfSignedIn() async {
+    User? user = firebaseAuth.currentUser;
+    return user != null;
+  }
+
+
 
 }
 
