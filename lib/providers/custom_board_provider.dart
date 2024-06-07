@@ -193,7 +193,7 @@ class CustomBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double boardPadding = -10; // You may need to adjust this value
+    // const double boardPadding = -10; // You may need to adjust this value
     return AspectRatio(
       aspectRatio: size.aspectRatio,
       child: LayoutBuilder(

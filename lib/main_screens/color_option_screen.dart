@@ -356,6 +356,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         }
         else {
           //search for players
+          //TODO Online play
         }
       });
     }

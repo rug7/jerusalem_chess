@@ -29,6 +29,34 @@ class Constants {
   static const String userModel = 'userModel';
   static const String isSignedIn = 'isSignedIn';
 
+  static const String availableGames = 'availableGames';
+
+  static const String photoUrl = 'photoUrl';
+  static const String gameCreatorUid = 'gameCreatorUid';
+  static const String gameCreatorName = 'gameCreatorName';
+  static const String gameCreatorPhoto = 'gameCreatorPhoto';
+  static const String isPlaying = 'isPlaying';
+  static const String gameId = 'gameId';
+  static const String dateCreated = 'dateCreated';
+  static const String whitesTime = 'whitesTime';
+  static const String blacksTime = 'blacksTime';
+
+  static const String creatorUid = 'creatorUid';
+  static const String userId = 'userId';
+  static const String positionFen = 'positionFen';
+  static const String winnerId = 'winnerId';
+  static const String whitesCurrentMove = 'whitesCurrentMove';
+  static const String blacksCurrentMove = 'blacksCurrentMove';
+  static const String boardState = 'boardState';
+  static const String playState = 'playState';
+  static const String isWhitesTurn = 'isWhitesTurn';
+  static const String isGameOver = 'isGameOver';
+  static const String squareState = 'squareState';
+  static const String moves = 'moves';
+
+
+
+
 
 
 

@@ -81,7 +81,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
   Widget build(BuildContext context) {
     final bool isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
-    final oppColor = isLightMode ? Colors.black : Colors.white;
+    // final oppColor = isLightMode ? Colors.black : Colors.white;
 
     return Scaffold(
       backgroundColor: textColor,
