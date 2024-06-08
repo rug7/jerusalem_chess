@@ -46,7 +46,10 @@
   "errorOccurred": "Error occurred:",
 
   "passwordMismatch": "Passwords do not match",
-  "confirmPass": "Confirm password"
+  "confirmPass": "Confirm password",
+
+  "searching": "Searching for a player, Please wait",
+  "joining": "Joining game, PLease wait"
 
 
 

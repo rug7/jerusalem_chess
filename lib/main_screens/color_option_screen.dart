@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/constants.dart';
+import 'package:flutter_chess_1/main_screens/game_screen.dart';
+import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
+import '../helper/helper_methods.dart';
 import '../widgets/widgets.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
 
+import 'game_screen.dart';
 import 'home_screen.dart';
 
 class ColorOptionScreen extends StatefulWidget {
@@ -19,21 +22,7 @@ class ColorOptionScreen extends StatefulWidget {
   State<ColorOptionScreen> createState() => _ColorOptionScreenState();
 }
 
-//load from json files
-Future<Map<String, dynamic>> loadTranslations(String language) async {
-  String content;
-  try {
-    content = await rootBundle.loadString('assets/language_translate/translations_$language.json');
-  } catch (e) {
-    print('Error loading translations: $e');
-    return {};
-  }
-  return json.decode(content);
-}
-//implement translation functions
-String getTranslation(String key, Map<String, dynamic> translations) {
-  return translations[key] ?? key;
-}
+
 
 class _ColorOptionScreenState extends State<ColorOptionScreen> {
   Map<String, dynamic> translations = {};
@@ -256,6 +245,10 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                     : const SizedBox.shrink(),
 
                 const SizedBox(height: 20,),
+
+                gameProvider.isLoading ? Lottie.asset(
+                  'assets/animations/signUpLoading.json',height: 100,width: 100,
+                ):
                 ElevatedButton(
                   onPressed:(){
                     playGame(gameProvider: gameProvider);
@@ -280,6 +273,8 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20,),
+                gameProvider.vsComputer ? const SizedBox.shrink() : Text(gameProvider.waitingText),
               ],
             ),
           );
@@ -308,6 +303,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
   void playGame({
     required GameProvider gameProvider,
   })async{
+    final userModel = context.read<AuthenticationProvider>().userModel;
     if (widget.isCustomTime){
       //check the timers if they are >0
       if(whiteTime<=0 || blackTime <= 0){
@@ -357,6 +353,31 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         else {
           //search for players
           //TODO Online play
+          gameProvider.searchForPlayer(
+              userModel: userModel!,
+              onSuccess: (){
+                if(gameProvider.waitingText == 'جاري البحث عن لاعب، الرجاء الإنتظار'){
+                  //gameProvider.waitingText == getTranslation('searching', translations);
+                  //stay on this screen and wait
+                  //TODO put an animation and navigate while waiting
+                  gameProvider.checkIfOpponentJoined(
+                      userModel: userModel,
+                      onSuccess: (){
+                        gameProvider.setIsLoading(value: false);
+                        //navigate to game screen
+                        Navigator.pushNamed(context, Constants.gameScreen);
+                      });
+
+                }else{
+                  gameProvider.setIsLoading(value: false);
+                  //navigate to game screen
+                 Navigator.pushNamed(context, Constants.gameScreen);
+                }
+
+          }, onFail: (error){
+            gameProvider.setIsLoading(value: false);
+            showSnackBar(context: context, content: error);
+          });
         }
       });
     }

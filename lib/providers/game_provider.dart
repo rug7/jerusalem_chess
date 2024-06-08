@@ -14,8 +14,12 @@ import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 import 'package:uuid/uuid.dart';
 
+
 class GameProvider extends ChangeNotifier{
+
+
   List<String> moveList = [];
+
   bool showAnalysisBoard = false; // State variable to control visibility
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -26,6 +30,7 @@ class GameProvider extends ChangeNotifier{
   }
   late bishop.Game _game = bishop.Game(variant: bishop.Variant.standard());
   late SquaresState _state = SquaresState.initial(0);
+
   bool _aiThinking = false;
   bool _flipBoard = false;
   bool _vsComputer = false;
@@ -98,12 +103,10 @@ class GameProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-
   //get position
   getPositionFen(){
     return game.fen;
   }
-
 
   //reset game
   void resetGame({required bool newGame}){
@@ -511,6 +514,77 @@ class GameProvider extends ChangeNotifier{
         ),
     );
   }
+
+  String _waitingText = '';
+
+  String get waitingText => _waitingText;
+
+  setWaitingText(){
+    _waitingText ='';
+    notifyListeners();
+  }
+
+  //search for players
+  Future searchForPlayer({
+  required UserModel userModel,
+  required Function() onSuccess,
+  required Function(String) onFail,
+})async{
+    try{
+      //get all available games
+      final availableGames = await firebaseFirestore.collection(Constants.availableGames).get();
+
+      //check if there are any available games
+      if(availableGames.docs.isNotEmpty){
+        final List<DocumentSnapshot> gamesList = availableGames
+                                            .docs.where((element) => element[Constants.isPlaying] == false)
+                                            .toList();
+
+        //check if there are no games where isPlaying == false
+        if(gamesList.isEmpty){
+          //TODO THE GET TRANSLATIONS
+          _waitingText ='جاري البحث عن لاعب، الرجاء الإنتظار';
+              //getTranslation('searching', _translations);
+          notifyListeners();
+          // create a new game
+          createNewGameInFireStore(
+            userModel: userModel,
+            onSuccess: onSuccess,
+            onFail: onFail,
+          );
+        }else{
+          //TODO THE GET TRANSLATIONS
+          _waitingText = 'جارٍ الانضمام إلى اللعبة، الرجاء الانتظار';//getTranslation('joining', _translations);
+          notifyListeners();
+          //join a game
+          joinGame(
+            game: gamesList.first,
+            userModel: userModel,
+            onSuccess: onSuccess,
+            onFail: onFail,
+          );
+        }
+
+      }else{
+        //TODO THE GET TRANSLATIONS
+        _waitingText = 'جاري البحث عن لاعب، الرجاء الإنتظار';//getTranslation('searching', _translations);
+        notifyListeners();
+        //we don't have any available games - create a game
+        createNewGameInFireStore(
+          userModel: userModel,
+          onSuccess: onSuccess,
+          onFail: onFail,
+        );
+      }
+
+    }on FirebaseException catch(e){
+      _isLoading = false;
+      notifyListeners();
+      onFail(e.toString());
+    }
+  }
+
+
   //create a game
   void createNewGameInFireStore({
     required UserModel userModel,
@@ -529,9 +603,11 @@ class GameProvider extends ChangeNotifier{
         Constants.uid: '',
         Constants.name: '',
         Constants.photoUrl: '',
+        Constants.userRating: 450,
         Constants.gameCreatorUid: userModel.uid,
         Constants.gameCreatorName: userModel.name,
-        Constants.gameCreatorPhoto: userModel.image,
+        Constants.gameCreatorImage: userModel.image,
+        Constants.gameCreatorRating: userModel.playerRating,
         Constants.isPlaying: false,
         Constants.gameId: gameId,
         Constants.dateCreated: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -550,16 +626,20 @@ class GameProvider extends ChangeNotifier{
   String _gameCreatorUid = '';
   String _gameCreatorName = '';
   String _gameCreatorPhoto = '';
+  int _gameCreatorRating = 1200;
   String _userId = '';
   String _userName = '';
   String _userPhoto = '';
+  int _userRating = 700;
 
   String get gameCreatorUid => _gameCreatorUid;
   String get gameCreatorName => _gameCreatorName;
   String get gameCreatorPhoto => _gameCreatorPhoto;
+  int get gameCreatorRating => _gameCreatorRating;
   String get userId => _userId;
   String get userName => _userName;
   String get userPhoto => _userPhoto;
+  int get userRating => _userRating;
 
 
 
@@ -576,10 +656,12 @@ class GameProvider extends ChangeNotifier{
       // get the data from the game we are joining
       _gameCreatorUid = game[Constants.gameCreatorUid];
       _gameCreatorName = game[Constants.gameCreatorName];
-      _gameCreatorPhoto= game[Constants.gameCreatorPhoto];
+      _gameCreatorPhoto= game[Constants.gameCreatorImage];
+      _gameCreatorRating = game[Constants.gameCreatorRating];
       _userId = userModel.uid;
       _userName= userModel.name;
       _userPhoto= userModel.image;
+      _userRating = userModel.playerRating;
 
       _gameId = game[Constants.gameId];
       notifyListeners();
@@ -592,7 +674,7 @@ class GameProvider extends ChangeNotifier{
       //initialize the game model
       final gameModel = GameModel(
           gameId: gameId,
-          creatorUid: _gameCreatorUid,
+          gameCreatorUid: _gameCreatorUid,
           userId: userId,
           positionFen: getPositionFen(),
           winnerId: '',
@@ -609,11 +691,182 @@ class GameProvider extends ChangeNotifier{
       );
 
       //create a game controller directory on firestore
+      await firebaseFirestore
+          .collection(Constants.runningGames)
+          .doc(gameId)
+          .collection(Constants.game)
+          .doc(gameId)
+          .set(gameModel.toMap());
 
+      //create a new game directory in firestore
+
+      await firebaseFirestore
+          .collection(Constants.runningGames)
+          .doc(gameId).set({
+        Constants.gameCreatorUid: gameCreatorUid,
+        Constants.gameCreatorName: gameCreatorName,
+        Constants.gameCreatorImage: gameCreatorPhoto,
+        Constants.gameCreatorRating: gameCreatorRating,
+        Constants.userId: userId,
+        Constants.userName: userName,
+        Constants.userImage: userPhoto,
+        Constants.userRating: userRating,
+        Constants.isPlaying: true,
+        Constants.dateCreated: DateTime.now().microsecondsSinceEpoch.toString(),
+        Constants.gameScore: '0-0',
+      });
+
+      //update game settings depending on the data of the game we are joining
+      await setGameDataAndSettings(game: game, userModel: userModel);
+
+
+    onSuccess();
     }on FirebaseException catch(e){
       onFail(e.toString());
     }
 
   }
+
+  StreamSubscription? isPlayingStreamSubscription;
+
+  //check if the other player joined
+  void checkIfOpponentJoined({
+    required UserModel userModel,
+    required Function() onSuccess,
+  })async{
+    isPlayingStreamSubscription = firebaseFirestore.collection(Constants.availableGames).doc(userModel.uid).snapshots().listen((event)async{
+      //check if the game exists
+      if(event.exists){
+        final DocumentSnapshot game = event;
+
+        //check if itPlaying = true
+        if(game[Constants.isPlaying]){
+          isPlayingStreamSubscription!.cancel();
+          await Future.delayed(const Duration(milliseconds: 100));
+          // get the data from the game we are joining
+          _gameCreatorUid = game[Constants.gameCreatorUid];
+          _gameCreatorName = game[Constants.gameCreatorName];
+          _gameCreatorPhoto= game[Constants.gameCreatorImage];
+          _userId = game[Constants.uid];
+          _userName= game[Constants.name];
+          _userPhoto= game[Constants.photoUrl];
+
+          setPlayerColor(player: 0);
+          notifyListeners();
+
+          onSuccess();
+        }
+      }
+    });
+  }
+
+  //set game data and settings
+  Future<void> setGameDataAndSettings({
+  required DocumentSnapshot<Object?>game,
+  required UserModel userModel,  
+  })async{
+    //get the reference to the game we are joining
+    final opponentsGame = firebaseFirestore
+                                .collection(Constants.availableGames)
+                                .doc(game[Constants.gameCreatorUid]);
+    
+    //time - 0:10:00.0000000
+    List<String> whitesTimeParts = game[Constants.whitesTime].split(':');
+    List<String> blacksTimeParts = game[Constants.blacksTime].split(':');
+    
+    int whitesGameTime = int.parse(whitesTimeParts[0]) * 60 + int.parse(whitesTimeParts[1]);
+    int blacksGameTime = int.parse(blacksTimeParts[0]) * 60 + int.parse(blacksTimeParts[1]);
+    
+    //set game time
+    await setGameTime(
+        newSavedWhiteTime: whitesGameTime.toString(),
+        newSavedBlackTime: blacksGameTime.toString()
+    );
+    
+    //update the created game in firestore
+    await opponentsGame.update({
+      Constants.isPlaying: true,
+      Constants.uid: userModel.uid,
+      Constants.name: userModel.name,
+      Constants.photoUrl: userModel.image,
+      Constants.userRating: userModel.playerRating,
+    });
+
+    //set the player state
+    setPlayerColor(player: 1);//setting to black
+    notifyListeners();
+
+  }
+
+  bool _isWhitesTurn = true;
+  String blacksMove ='';
+  String whitesMove ='';
+
+  bool get isWhitesTurn => _isWhitesTurn;
+
+  StreamSubscription? gameStreamSubscription;
+
+  //listen for game changes in firestore
+  Future<void> listenForGameChanges({
+    required BuildContext context,
+    required UserModel userModel,
+  })async{
+    CollectionReference gameCollectionReference = firebaseFirestore
+                                                  .collection(Constants.runningGames)
+                                                  .doc(gameId)
+                                                  .collection(Constants.game);
+
+    gameStreamSubscription = gameCollectionReference.snapshots().listen((event){
+      if(event.docs.isNotEmpty){
+        //get the game
+        final DocumentSnapshot game = event.docs.first;
+
+        //check if we are white - this means we are the game creator
+        if(game[Constants.gameCreatorUid] ==  userModel.uid){
+          //check if is white's turn
+          if(game[Constants.isWhitesTurn]){
+            _isWhitesTurn = true;
+
+            //check if blacksCurrentMove is not empty or equal to the old move- this means blacks has played his move
+            //this means it's our turn to play
+            if(game[Constants.blacksCurrentMove] !=blacksMove){
+              //update the whites UI
+              bool result = makeStringMove(game[Constants.blacksCurrentMove]);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+              if(result){
+                setSquaresState().whenComplete((){
+                  pauseBlackTimer();
+                  startWhitesTimer(context: context, onNewGame: (){});
+
+                  gameOverListener(context: context, onNewGame: (){});
+                });
+              }
+            }
+            notifyListeners();
+          }
+
+        }else{
+          //not the game creator
+          _isWhitesTurn = false;
+
+          //check if white has played his move
+          if(game[Constants.whitesCurrentMove] !=whitesMove){
+            //update the whites UI
+            bool result = makeStringMove(game[Constants.whitesCurrentMove]);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+            if(result){
+              setSquaresState().whenComplete((){
+                pauseWhiteTimer();
+                startBlacksTimer(context: context, onNewGame: (){});
+
+                gameOverListener(context: context, onNewGame: (){});
+              });
+            }
+          }
+          notifyListeners();
+        }
+      }
+
+    });
+  }
+
 
 }

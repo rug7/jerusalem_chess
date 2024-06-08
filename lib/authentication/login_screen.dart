@@ -5,7 +5,6 @@ import 'package:flutter_chess_1/helper/helper_methods.dart';
 import 'package:flutter_chess_1/widgets/main_auth_button.dart';
 import 'package:flutter_chess_1/widgets/widgets.dart';
 import 'package:provider/provider.dart';
-import '../main_screens/color_option_screen.dart';
 import '../main_screens/home_screen.dart';
 import '../providers/authentication_provider.dart';
 import '../providers/theme_language_provider.dart';

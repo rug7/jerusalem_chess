@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 
 
 import '../helper/helper_methods.dart';
-import 'color_option_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key});

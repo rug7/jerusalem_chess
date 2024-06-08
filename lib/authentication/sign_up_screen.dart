@@ -10,7 +10,6 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
-import '../main_screens/color_option_screen.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/main_auth_button.dart';
 import '../widgets/widgets.dart';
@@ -35,7 +34,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // final TextEditingController nameController = TextEditingController();
-  // final TextEditingController emailController = TextEditingController();
+  // final TextEditingController emailController = TextEdi tingController();
   // final TextEditingController passwordController = TextEditingController();
 
 
@@ -261,6 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             email: email,
             image: '',
             createdAt: '',
+            playerRating: 700,
           );
 
           authProvider.saveUserDataToFireStore(
