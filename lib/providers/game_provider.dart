@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:bishop/bishop.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -376,6 +375,9 @@ class GameProvider extends ChangeNotifier{
         //pause both timers
         pauseWhiteTimer();
         pauseBlackTimer();
+
+        //Cancel the game stream subscription
+        gameStreamSubscription!.cancel();
         if(context.mounted){
           gameOverDialog(
               context: context,
@@ -831,7 +833,13 @@ class GameProvider extends ChangeNotifier{
             //this means it's our turn to play
             if(game[Constants.blacksCurrentMove] !=blacksMove){
               //update the whites UI
-              bool result = makeStringMove(game[Constants.blacksCurrentMove]);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+
+              Move convertedMove = convertMoveStringToMove(
+                  moveString: game[Constants.blacksCurrentMove]
+              );
+
+
+              bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
               if(result){
                 setSquaresState().whenComplete((){
                   pauseBlackTimer();
@@ -851,7 +859,13 @@ class GameProvider extends ChangeNotifier{
           //check if white has played his move
           if(game[Constants.whitesCurrentMove] !=whitesMove){
             //update the whites UI
-            bool result = makeStringMove(game[Constants.whitesCurrentMove]);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+
+            Move convertedMove = convertMoveStringToMove(
+                moveString: game[Constants.whitesCurrentMove]
+            );
+            
+            
+            bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
             if(result){
               setSquaresState().whenComplete((){
                 pauseWhiteTimer();
@@ -866,6 +880,96 @@ class GameProvider extends ChangeNotifier{
       }
 
     });
+  }
+
+  //convert move string to move format
+  Move convertMoveStringToMove({
+  required String moveString,
+  }) {
+    //Split the move string into it's components
+    List<String> parts = moveString.split('-');
+
+    //Extract 'from' and 'to'
+    int from = int.parse(parts[0]);
+    int to = int.parse(parts[1].split('[')[0]);
+
+    String? promo;
+    String? piece;
+    //Extract the promotion 'promo' and 'piece' if available
+    if(moveString.contains('[')){
+      String extras = moveString.split('[')[1].split(']')[0];
+      List<String> extraList = extras.split(',');
+      promo = extraList[0];
+      if(extraList.length > 1){
+        piece = extraList[1];
+      }
+    }
+
+    //Create and return a new Move object
+    return Move(
+        from: from,
+        to: to,
+        promo: promo,
+        piece: piece
+    );
+  }
+
+  //play move and save to firestore
+  Future<void> playMoveAndSaveToFirestore({
+    required BuildContext context,
+    required Move move,
+    required bool isWhitesMove,
+  }) async{
+    //check if it's white's move
+    if(isWhitesMove){
+      await firebaseFirestore
+          .collection(Constants.runningGames)
+          .doc(gameId)
+          .collection(Constants.game)
+          .doc(gameId)
+          .update({
+        Constants.positionFen: getPositionFen(),
+        Constants.whitesCurrentMove : move.toString(),
+        Constants.moves: FieldValue.arrayUnion([move.toString()]),
+        Constants.isWhitesTurn: false,
+        Constants.playState: PlayState.theirTurn.name.toString(),
+        });
+
+      //pause white's timer and start black's timer
+      pauseWhiteTimer();
+      Future.delayed(const Duration(milliseconds: 100)).whenComplete((){
+        startBlacksTimer(
+            context: context,
+            onNewGame: (){
+
+            });
+      });
+    }
+    else{
+      await firebaseFirestore
+          .collection(Constants.runningGames)
+          .doc(gameId)
+          .collection(Constants.game)
+          .doc(gameId)
+          .update({
+        Constants.positionFen: getPositionFen(),
+        Constants.blacksCurrentMove : move.toString(),
+        Constants.moves: FieldValue.arrayUnion([move.toString()]),
+        Constants.isWhitesTurn: true,
+        Constants.playState: PlayState.ourTurn.name.toString(),
+      });
+
+      //pause black's timer and start black's timer
+      pauseBlackTimer();
+      Future.delayed(const Duration(milliseconds: 100)).whenComplete((){
+        startWhitesTimer(
+            context: context,
+            onNewGame: (){
+
+            });
+      });
+    }
+
   }
 
 

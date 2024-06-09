@@ -160,70 +160,94 @@ class _GameScreenState extends State<GameScreen> {
     bool result = gameProvider.makeSquaresMove(move);
     final newMove = convertMoveFormat(move.toString()).split('-')[1];
     if (result) {
-      gameProvider.setSquaresState().whenComplete(() {
+      gameProvider.setSquaresState().whenComplete(() async{
         if(gameProvider.player == Squares.white){
-          //pause timer for white
-          gameProvider.pauseWhiteTimer();
-          startTimer(
-            isWhiteTimer: false,
-            onNewGame: (){},
-          );
-          //set white bool flag to true so we don't run the code again until true
-          gameProvider.setPlayWhiteTimer(value: true);
-        } else{
-          //pause timer for black
-          gameProvider.pauseBlackTimer();
-          startTimer(
-            isWhiteTimer: true,
-            onNewGame: (){},
-          );
-          //set black bool flag to true so we don't run the code again until true
+          //check if we are playing vs computer
+          if(gameProvider.vsComputer){
+            //pause timer for white
+            gameProvider.pauseWhiteTimer();
+            startTimer(
+              isWhiteTimer: false,
+              onNewGame: (){},
+            );
+            //set white bool flag to true so we don't run the code again until true
+            gameProvider.setPlayWhiteTimer(value: true);
+          }else{
+            //play and save whites move to firestore
+            await gameProvider.playMoveAndSaveToFirestore(
+              context: context,
+              move: move,
+              isWhitesMove: true,
+            );
+          }
 
-          gameProvider.setPlayBlackTimer(value: true);
+        } else{
+          if(gameProvider.vsComputer){
+            //pause timer for black
+            gameProvider.pauseBlackTimer();
+            startTimer(
+              isWhiteTimer: true,
+              onNewGame: (){},
+            );
+            //set black bool flag to true so we don't run the code again until true
+
+            gameProvider.setPlayBlackTimer(value: true);
+          }
+          else{
+            //play and save black's move to firestore
+            await gameProvider.playMoveAndSaveToFirestore(
+              context: context,
+              move: move,
+              isWhitesMove: false,
+            );
+          }
+
 
         }
         updateMoveList(newMove);
 
       });
     }
-    if (gameProvider.state.state == PlayState.theirTurn && !gameProvider.aiThinking) {
-      gameProvider.setAiThinking(true);
+    if(gameProvider.vsComputer){
+      if (gameProvider.state.state == PlayState.theirTurn && !gameProvider.aiThinking) {
+        gameProvider.setAiThinking(true);
 
-      //wait until stockfish is ready
-      await waitUntilReady();
+        //wait until stockfish is ready
+        await waitUntilReady();
 
-      //get the current position of the board and send it to stockfish
-      stockfish.stdin = '${UCICommands.position} ${gameProvider.getPositionFen()}';
+        //get the current position of the board and send it to stockfish
+        stockfish.stdin = '${UCICommands.position} ${gameProvider.getPositionFen()}';
 
-      //set stockfish level
-      stockfish.stdin = '${UCICommands.goMoveTime} ${gameProvider.gameLevel * 1000}';
-
-
+        //set stockfish level
+        stockfish.stdin = '${UCICommands.goMoveTime} ${gameProvider.gameLevel * 1000}';
 
 
-      // await Future.delayed(
-      //     Duration(milliseconds: Random().nextInt(4750) + 250));
-      // gameProvider.game.makeRandomMove();
-      // gameProvider.setAiThinking(false);
-      // gameProvider.setSquaresState().whenComplete(() {
-      //   if(gameProvider.player == Squares.white){
-      //     //pause timer for black
-      //     gameProvider.pauseBlackTimer();
-      //     startTimer(
-      //       isWhiteTimer: true,
-      //       onNewGame: (){},
-      //     );
-      //
-      //   }
-      //   else{
-      //     //pause timer for white
-      //     gameProvider.pauseWhiteTimer();
-      //     startTimer(
-      //       isWhiteTimer: false,
-      //       onNewGame: (){},
-      //     );
-      //   }
-      // });
+
+
+        // await Future.delayed(
+        //     Duration(milliseconds: Random().nextInt(4750) + 250));
+        // gameProvider.game.makeRandomMove();
+        // gameProvider.setAiThinking(false);
+        // gameProvider.setSquaresState().whenComplete(() {
+        //   if(gameProvider.player == Squares.white){
+        //     //pause timer for black
+        //     gameProvider.pauseBlackTimer();
+        //     startTimer(
+        //       isWhiteTimer: true,
+        //       onNewGame: (){},
+        //     );
+        //
+        //   }
+        //   else{
+        //     //pause timer for white
+        //     gameProvider.pauseWhiteTimer();
+        //     startTimer(
+        //       isWhiteTimer: false,
+        //       onNewGame: (){},
+        //     );
+        //   }
+        // });
+      }
     }
 
     await Future.delayed(const Duration(seconds: 1));

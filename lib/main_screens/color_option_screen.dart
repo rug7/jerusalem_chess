@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter_chess_1/main_screens/game_screen.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:flutter_svg/svg.dart';
@@ -9,8 +8,6 @@ import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../widgets/widgets.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
-
-import 'game_screen.dart';
 import 'home_screen.dart';
 
 class ColorOptionScreen extends StatefulWidget {
