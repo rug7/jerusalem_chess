@@ -838,8 +838,8 @@ class GameProvider extends ChangeNotifier{
                   moveString: game[Constants.blacksCurrentMove]
               );
 
-
               bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+
               if(result){
                 setSquaresState().whenComplete((){
                   pauseBlackTimer();
