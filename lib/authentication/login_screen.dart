@@ -4,6 +4,7 @@ import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
 import 'package:flutter_chess_1/helper/helper_methods.dart';
 import 'package:flutter_chess_1/widgets/main_auth_button.dart';
 import 'package:flutter_chess_1/widgets/widgets.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../main_screens/home_screen.dart';
 import '../providers/authentication_provider.dart';
@@ -180,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('homeTitle', _translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
@@ -328,19 +329,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     }, child: Text(
                         getTranslation('forgotPass', _translations,),
                         style: const TextStyle(
-                          color:Color(0xFF663d99),
+                          color:Color(0xff4e3c96),
                         ),
                     ),
                     ),
                   ),
                   const SizedBox(height: 10,),
-                  authProvider.isLoading ? const CircularProgressIndicator() :
+                  authProvider.isLoading ? Lottie.asset(
+                    'assets/animations/landing.json',
+                    height: 100,
+                    width: 100,
+                  ) :
                   MainAuthButton(
                       label: getTranslation('login', _translations),
+
                       onPressed: (){
                         signInUser();
                       },
                       fontSize: 20
+
                   ),
                   const SizedBox(height: 15,),
                   Text(

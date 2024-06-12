@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chess_1/authentication/searching_for_players.dart';
 import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
@@ -58,7 +59,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
     return Scaffold(
       backgroundColor: _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('setUpText', translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
@@ -243,57 +244,59 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
 
                 const SizedBox(height: 20,),
 
-                gameProvider.isLoading ? Lottie.asset(
-                  'assets/animations/signUpLoading.json',height: 100,width: 100,
-                ):
-                ElevatedButton(
-                  onPressed:(){
-                    playGame(gameProvider: gameProvider);
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.pressed)) {
-                          return Theme.of(context).colorScheme.primary.withOpacity(0.5);
-                        }
-                        return _themeLanguageProvider.isLightMode ? const Color(0xFF663d99) : const Color(0xFF663d99); // Different color in dark mode
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    gameProvider.isLoading
+                        ? Lottie.asset(
+                      'assets/animations/landing.json',
+                      height: 200,
+                      width: 200,
+                    )
+                        : ElevatedButton(
+                      onPressed: () {
+                        playGame(gameProvider: gameProvider);
                       },
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                              (Set<WidgetState> states) {
+                            if (states.contains(WidgetState.pressed)) {
+                              return Theme.of(context).colorScheme.primary.withOpacity(0.5);
+                            }
+                            return _themeLanguageProvider.isLightMode ? const Color(0xff4e3c96) : const Color(0xff4e3c96);
+                          },
+                        ),
+                        foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                      ),
+                      child: Text(
+                        getTranslation('playText', translations),
+                        style: TextStyle(
+                          color: textColor,
+                          fontFamily: 'IBM Plex Sans Arabic',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                    foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
-                  ),
-                  child: Text(
-                    getTranslation('playText', translations),
-                    style: TextStyle(
-                      color: textColor, // Define `buttonText` based on theme
-                      fontFamily: 'IBM Plex Sans Arabic',
-                      fontWeight: FontWeight.w700,
+                    gameProvider.isLoading
+                        ? const SizedBox(height: 20) // Add space between the animation and the text
+                        : Text(
+                      gameProvider.waitingText,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 30,
+                        fontFamily: 'IBM Plex Sans Arabic',
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+
                 const SizedBox(height: 20,),
                 gameProvider.vsComputer ? const SizedBox.shrink() : Text(gameProvider.waitingText),
               ],
             ),
           );
         },
-      ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFF663d99),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            IconButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      (Route<dynamic> route) => false,
-                );
-              },
-              icon: SvgPicture.asset('assets/images/black_logo.svg', height: 50),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -357,6 +360,8 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                   //gameProvider.waitingText == getTranslation('searching', translations);
                   //stay on this screen and wait
                   //TODO put an animation and navigate while waiting
+
+
                   gameProvider.checkIfOpponentJoined(
                       userModel: userModel,
                       onSuccess: (){

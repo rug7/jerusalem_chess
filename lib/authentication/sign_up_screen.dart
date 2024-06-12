@@ -354,7 +354,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('homeTitle', _translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
@@ -429,7 +429,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         right: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF663d99),
+                            color: const Color(0xff4e3c96),
                             border: Border.all(width: 2,color: Colors.white,),
                             borderRadius: BorderRadius.circular(35),
                           ),
@@ -461,7 +461,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         right: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF663d99),
+                            color: const Color(0xff4e3c96),
                             border: Border.all(width: 2,color: Colors.white,),
                             borderRadius: BorderRadius.circular(35),
                           ),

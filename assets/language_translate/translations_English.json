@@ -49,7 +49,11 @@
   "confirmPass": "Confirm password",
 
   "searching": "Searching for a player, Please wait",
-  "joining": "Joining game, PLease wait"
+  "joining": "Joining game, PLease wait",
+
+  "gm": "Good morning, ",
+  "ga": "Good afternoon, ",
+  "ge": "Good evening, "
 
 
 

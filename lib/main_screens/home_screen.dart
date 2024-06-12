@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/authentication/login_screen.dart';
 import 'package:flutter_chess_1/main_screens/about_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
 import 'package:flutter_chess_1/main_screens/settings_screen.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
-
 import '../helper/helper_methods.dart';
+import '../providers/authentication_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key});
@@ -59,21 +56,33 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onLanguageChanged() {
     _loadTranslations(); // Reload translations when the language changes
   }
+  // Function to get greeting based on current time
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return getTranslation("gm", _translations);
+    } else if (hour < 18) {
+      return getTranslation("ga", _translations);
+    } else {
+      return getTranslation("ge", _translations);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.read<GameProvider>();
-    // final themeLanguageProvider = context.watch<ThemeLanguageProvider>();
     final isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
+    final user = context.watch<AuthenticationProvider>().userModel;
 
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
-          getTranslation('homeTitle', _translations),
+          user?.name != null ? '${_getGreeting()} ${user?.name}' : getTranslation('homeTitle', _translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
+          textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
         ),
         actions: [
           IconButton(
@@ -148,29 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      // Update the bottomNavigationBar in the HomeScreen to match the second screen
-      bottomNavigationBar: Container(
-        color: const Color(0xff4e3c96),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            IconButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      (Route<dynamic> route) => false,
-                );
-              },
-              icon: SvgPicture.asset('assets/images/black_logo.svg', height: 50),
-            ),
-          ],
-        ),
-      ),
-
     );
-
-
   }
 }
 

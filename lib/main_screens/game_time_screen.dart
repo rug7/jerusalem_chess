@@ -86,7 +86,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('chooseGameTime', _translations,),
           style: TextStyle(color: textColor,
@@ -170,25 +170,6 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
               ),
             ),
           ),
-          Container(
-            color: const Color(0xFF663d99),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                          (Route<dynamic> route) => false,// Ensure you import HomeScreen if not already imported
-                    );
-                  },
-                  icon: SvgPicture.asset('assets/images/black_logo.svg', height: 50),
-                ),
-              ],
-            ),
-          ),
-
         ],
       ),
     );
