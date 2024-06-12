@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('homeTitle', _translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // Update the bottomNavigationBar in the HomeScreen to match the second screen
       bottomNavigationBar: Container(
-        color: const Color(0xFF663d99),
+        color: const Color(0xff4e3c96),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [

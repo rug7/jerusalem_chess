@@ -177,3 +177,4 @@ class HaveAccountWidget extends StatelessWidget {
 showSnackBar({required BuildContext context , required String content}){
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(content)));
 }
+

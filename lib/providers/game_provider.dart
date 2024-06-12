@@ -13,8 +13,11 @@ import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 import 'package:uuid/uuid.dart';
 
+import '../main_screens/home_screen.dart';
+
 
 class GameProvider extends ChangeNotifier{
+
 
 
   List<String> moveList = [];
@@ -472,45 +475,47 @@ class GameProvider extends ChangeNotifier{
               ),
               actions: [
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Navigate to home Screen
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          Constants.homeScreen,
-                              (route) => false,
-                        );
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.red),
+                SingleChildScrollView(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          // Navigate to home Screen
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            Constants.homeScreen,
+                                (route) => false,
+                          );
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        context.read<GameProvider>().toggleAnalysisBoard();
-                      },
-                      child: const Text(
-                        'Analysis Board',
-                        style: TextStyle(color: Colors.orange),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.read<GameProvider>().toggleAnalysisBoard();
+                        },
+                        child: const Text(
+                          'Analysis Board',
+                          style: TextStyle(color: Colors.orange),
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
-                        resetNewGame(newGame: true);
-                        // reset the game
-                      },
-                      child: const Text('New Game',style: TextStyle(color: Colors.green)),
-                    ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                          resetNewGame(newGame: true);
+                          // reset the game
+                        },
+                        child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                      ),
 
-                  ],
+                    ],
+                  ),
                 ),
               ],
         ),
@@ -675,9 +680,9 @@ class GameProvider extends ChangeNotifier{
       }
       //initialize the game model
       final gameModel = GameModel(
-          gameId: gameId,
+          gameId: _gameId,
           gameCreatorUid: _gameCreatorUid,
-          userId: userId,
+          userId: _userId,
           positionFen: getPositionFen(),
           winnerId: '',
           whitesTime: game[Constants.whitesTime],
@@ -695,24 +700,25 @@ class GameProvider extends ChangeNotifier{
       //create a game controller directory on firestore
       await firebaseFirestore
           .collection(Constants.runningGames)
-          .doc(gameId)
+          .doc(_gameId)
           .collection(Constants.game)
-          .doc(gameId)
+          .doc(_gameId)
           .set(gameModel.toMap());
 
       //create a new game directory in firestore
 
       await firebaseFirestore
           .collection(Constants.runningGames)
-          .doc(gameId).set({
-        Constants.gameCreatorUid: gameCreatorUid,
-        Constants.gameCreatorName: gameCreatorName,
-        Constants.gameCreatorImage: gameCreatorPhoto,
-        Constants.gameCreatorRating: gameCreatorRating,
-        Constants.userId: userId,
-        Constants.userName: userName,
-        Constants.userImage: userPhoto,
-        Constants.userRating: userRating,
+          .doc(_gameId)
+          .set({
+        Constants.gameCreatorUid: _gameCreatorUid,
+        Constants.gameCreatorName: _gameCreatorName,
+        Constants.gameCreatorImage: _gameCreatorPhoto,
+        Constants.gameCreatorRating: _gameCreatorRating,
+        Constants.userId: _userId,
+        Constants.userName: _userName,
+        Constants.userImage: _userPhoto,
+        Constants.userRating: _userRating,
         Constants.isPlaying: true,
         Constants.dateCreated: DateTime.now().microsecondsSinceEpoch.toString(),
         Constants.gameScore: '0-0',
@@ -814,14 +820,15 @@ class GameProvider extends ChangeNotifier{
     required UserModel userModel,
   })async{
     CollectionReference gameCollectionReference = firebaseFirestore
-                                                  .collection(Constants.runningGames)
-                                                  .doc(gameId)
-                                                  .collection(Constants.game);
+        .collection(Constants.runningGames)
+        .doc(gameId)
+        .collection(Constants.game);
 
     gameStreamSubscription = gameCollectionReference.snapshots().listen((event){
       if(event.docs.isNotEmpty){
         //get the game
         final DocumentSnapshot game = event.docs.first;
+        try {
 
         //check if we are white - this means we are the game creator
         if(game[Constants.gameCreatorUid] ==  userModel.uid){
@@ -877,8 +884,39 @@ class GameProvider extends ChangeNotifier{
           }
           notifyListeners();
         }
+        } catch (e) {
+          print('Error processing game changes: $e');
+        }
       }
 
+    });
+    FirebaseFirestore.instance.collection('games').doc(gameId).snapshots().listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data['playerLeft'] != null) {
+          final playerLeftId = data['playerLeft'];
+          if (playerLeftId != userModel.uid) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Player Left', textAlign: TextAlign.center),
+                  content: const Text('Your opponent has left the game. You win!', textAlign: TextAlign.center),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+            resetGame(newGame: true);
+          }
+        }
+      }
     });
   }
 
@@ -972,5 +1010,75 @@ class GameProvider extends ChangeNotifier{
 
   }
 
+  Future<void> leaveGame(String userId) async {
+    final docRef = FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId);
+
+    try {
+      final docSnapshot = await docRef.get();
+      if (docSnapshot.exists) {
+        await docRef.update({
+          'playerLeft': userId,
+          'gameStatus': 'opponentLeft', // Add a status field to indicate the game is over
+          'isGameOver': true,
+          'winnerId': 'opponent', // Set the opponent as the winner
+        });
+      } else {
+        print('Document not found: ${docRef.path}');
+        // Handle the case where the document doesn't exist
+      }
+    } catch (e) {
+      print('Error updating document: $e');
+      // Handle any other errors that occur
+    }
+  }
+
+  void listenForOpponentLeave(String gameId, BuildContext context) {
+    FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).snapshots().listen((snapshot) {
+      if (snapshot.exists && snapshot.data()!['gameStatus'] == 'opponentLeft') {
+        // Show the opponent left message
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('You Win!'),
+            content: const Text('Your opponent has left the game.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        (Route<dynamic> route) => false,
+                  );
+                },
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.read<GameProvider>().toggleAnalysisBoard();
+                },
+                child: const Text(
+                  'Analysis Board',
+                  style: TextStyle(color: Colors.orange),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                  resetNewGame(newGame: true);
+                  // reset the game
+                },
+                child: const Text('New Game',style: TextStyle(color: Colors.green)),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+  }
 
 }
