@@ -476,42 +476,49 @@ class GameProvider extends ChangeNotifier{
               actions: [
 
                 SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // Navigate to home Screen
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            Constants.homeScreen,
-                                (route) => false,
-                          );
-                        },
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.red),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // Navigate to home Screen
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              Constants.homeScreen,
+                                  (route) => false,
+                            );
+                          },
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.read<GameProvider>().toggleAnalysisBoard();
-                        },
-                        child: const Text(
-                          'Analysis Board',
-                          style: TextStyle(color: Colors.orange),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.read<GameProvider>().toggleAnalysisBoard();
+                          },
+                          child: const Text(
+                            'Analysis Board',
+                            style: TextStyle(color: Colors.orange),
+                          ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
-                          resetNewGame(newGame: true);
-                          // reset the game
-                        },
-                        child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                            resetNewGame(newGame: true);
+                            // reset the game
+                          },
+                          child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                        ),
                       ),
 
                     ],

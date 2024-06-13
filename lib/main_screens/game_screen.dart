@@ -292,7 +292,10 @@ class _GameScreenState extends State<GameScreen> {
     var boardTheme = isLightMode ? CustomBoardTheme.goldPurple : CustomBoardTheme.blackGrey;
     var pieceSet = getPieceSet(isLightMode);
     final textColor = isLightMode ? Colors.white : Colors.black;
-    gameProvider.listenForOpponentLeave(gameProvider.gameId, context);
+    if(!gameProvider.vsComputer){
+      gameProvider.listenForOpponentLeave(gameProvider.gameId, context);
+
+    }
 
     return WillPopScope(
       onWillPop: () async {
