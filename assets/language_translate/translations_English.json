@@ -53,7 +53,10 @@
 
   "gm": "Good morning, ",
   "ga": "Good afternoon, ",
-  "ge": "Good evening, "
+  "ge": "Good evening, ",
+
+  "gameInProg": "Game is still in progress",
+  "go": "Game Over"
 
 
 

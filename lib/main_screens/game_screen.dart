@@ -30,6 +30,8 @@ class _GameScreenState extends State<GameScreen> {
     stockfish = Stockfish();
     final gameProvider =  context.read<GameProvider>();
     gameProvider.resetGame(newGame: false);
+    super.initState();
+    gameProvider.listenToGameUpdates();
 
     if(mounted){
       letOtherPlayerPlayFirst();
@@ -403,11 +405,11 @@ class _GameScreenState extends State<GameScreen> {
                   separatorBuilder: (_, __) => Divider(color: Colors.grey[700]),
                   // Separator for readability
                   itemBuilder: (context, index) {
-                    String moveWhite = moveList.length > index * 2
-                        ? moveList[index * 2]
+                    String moveWhite = gameProvider.moveList.length > index * 2
+                        ? gameProvider.moveList[index * 2]
                         : "";
-                    String moveBlack = moveList.length > index * 2 + 1
-                        ? moveList[index * 2 + 1]
+                    String moveBlack = gameProvider.moveList.length > index * 2 + 1
+                        ? gameProvider.moveList[index * 2 + 1]
                         : "";
 
                     return Row(

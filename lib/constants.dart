@@ -1,5 +1,3 @@
-
-
 class Constants {
   static const String custom = 'Custom';
   static const String arabicCustom ='مخصص';

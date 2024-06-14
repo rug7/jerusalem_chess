@@ -18,8 +18,6 @@ import '../main_screens/home_screen.dart';
 
 class GameProvider extends ChangeNotifier{
 
-
-
   List<String> moveList = [];
 
   bool showAnalysisBoard = false; // State variable to control visibility
@@ -464,68 +462,69 @@ class GameProvider extends ChangeNotifier{
     }
   }
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: Text('Game Over\n $whiteScoreToShow - $blackScoreToShow',
-            textAlign: TextAlign.center,),
-              content: Text(
-                resultsToShow.isNotEmpty ? resultsToShow : 'Game is still in progress',
-                textAlign: TextAlign.center,
-              ),
-              actions: [
-
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // Navigate to home Screen
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              Constants.homeScreen,
-                                  (route) => false,
-                            );
-                          },
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            context.read<GameProvider>().toggleAnalysisBoard();
-                          },
-                          child: const Text(
-                            'Analysis Board',
-                            style: TextStyle(color: Colors.orange),
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
-                            resetNewGame(newGame: true);
-                            // reset the game
-                          },
-                          child: const Text('New Game',style: TextStyle(color: Colors.green)),
-                        ),
-                      ),
-
-                    ],
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Game Over\n $whiteScoreToShow - $blackScoreToShow',
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          resultsToShow.isNotEmpty ? resultsToShow : 'Game is still in progress',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,  // Added this line
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Navigate to home Screen
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        Constants.homeScreen,
+                            (route) => false,
+                      );
+                    },
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ),
+                Flexible(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.read<GameProvider>().toggleAnalysisBoard();
+                    },
+                    child: const Text(
+                      'Analysis Board',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                  ),
+                ),
+                // Flexible(
+                //   child: TextButton(
+                //     onPressed: () {
+                //       Navigator.pop(context);
+                //       // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                //       resetNewGame(newGame: true);
+                //       // reset the game
+                //     },
+                //     child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                //   ),
+                // ),
               ],
-        ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -975,7 +974,7 @@ class GameProvider extends ChangeNotifier{
           .update({
         Constants.positionFen: getPositionFen(),
         Constants.whitesCurrentMove : move.toString(),
-        Constants.moves: FieldValue.arrayUnion([move.toString()]),
+        Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
         Constants.isWhitesTurn: false,
         Constants.playState: PlayState.theirTurn.name.toString(),
         });
@@ -999,7 +998,7 @@ class GameProvider extends ChangeNotifier{
           .update({
         Constants.positionFen: getPositionFen(),
         Constants.blacksCurrentMove : move.toString(),
-        Constants.moves: FieldValue.arrayUnion([move.toString()]),
+        Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
         Constants.isWhitesTurn: true,
         Constants.playState: PlayState.ourTurn.name.toString(),
       });
@@ -1087,5 +1086,57 @@ class GameProvider extends ChangeNotifier{
       }
     });
   }
+
+  Stream<DocumentSnapshot> get gameMovesStream {
+    return firebaseFirestore
+        .collection(Constants.runningGames)
+        .doc(gameId)
+        .collection(Constants.game)
+        .doc(gameId)
+        .snapshots();
+  }
+
+
+  void listenToGameUpdates() {
+    gameMovesStream.listen((documentSnapshot) {
+      if (documentSnapshot.exists) {
+        var data = documentSnapshot.data() as Map<String, dynamic>?;
+        if (data != null) {
+          List<dynamic> firestoreMoves = data[Constants.moves] ?? [];
+          moveList = firestoreMoves.map((e) => (e.toString()).split('-')[1]).toList();
+          notifyListeners(); // Notify listeners to update the UI
+        }
+      }
+    });
+  }
+
+  String convertMoveFormatProvider(String move) {
+    // Split the move string into source and destination parts
+    List<String> parts = move.split('-');
+
+    // Ensure there are exactly two parts
+    if (parts.length != 2) {
+      throw const FormatException('Invalid move format');
+    }
+    // Parse the source and destination indices
+    int sourceIndex = int.parse(parts[0]);
+    int destinationIndex = int.parse(parts[1]);
+
+    // Map column index to letter
+    final columnMap = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'};
+
+    // Convert indices to chess notation
+    final sourceColumn = columnMap[sourceIndex % 8];
+    final sourceRow = (8 - (sourceIndex ~/ 8)).toString();
+    final destinationColumn = columnMap[destinationIndex % 8];
+    final destinationRow = (8 - (destinationIndex ~/ 8)).toString();
+
+    // Construct the new move string in chess notation format
+    final newMove = '$sourceColumn$sourceRow-$destinationColumn$destinationRow';
+
+    return newMove;
+
+  }
+
 
 }
