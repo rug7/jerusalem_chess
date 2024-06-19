@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -639,11 +640,11 @@ class GameProvider extends ChangeNotifier{
   String _gameCreatorUid = '';
   String _gameCreatorName = '';
   String _gameCreatorPhoto = '';
-  int _gameCreatorRating = 1200;
+  int _gameCreatorRating = 0;
   String _userId = '';
   String _userName = '';
   String _userPhoto = '';
-  int _userRating = 700;
+  int _userRating = 0;
 
   String get gameCreatorUid => _gameCreatorUid;
   String get gameCreatorName => _gameCreatorName;
@@ -1040,7 +1041,7 @@ class GameProvider extends ChangeNotifier{
 
   void listenForOpponentLeave(String gameId, BuildContext context) {
     FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).snapshots().listen((snapshot) {
-      if (snapshot.exists && snapshot.data()!['gameStatus'] == 'opponentLeft') {
+      if (snapshot.exists && snapshot.data()!['gameStatus'] == 'opponentLeft'){
         // Show the opponent left message
         showDialog(
           context: context,
@@ -1085,6 +1086,7 @@ class GameProvider extends ChangeNotifier{
         );
       }
     });
+    FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).delete();
   }
 
   Stream<DocumentSnapshot> get gameMovesStream {
@@ -1137,6 +1139,85 @@ class GameProvider extends ChangeNotifier{
     return newMove;
 
   }
+
+  Future<void> updateRatings({
+    required String gameId,
+    required String winnerId,
+    required Function onSuccess,
+    required Function onFail,
+  }) async {
+    try {
+      DocumentSnapshot gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
+      Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+
+      String gameCreatorUid = gameData[Constants.gameCreatorUid];
+      String opponentUid = gameData[Constants.userId];
+      int gameCreatorRating = gameData[Constants.gameCreatorRating];
+      int opponentRating = gameData[Constants.userRating];
+
+      // Determine the new ratings
+      Map<String, int> newRatings = calculateNewRatings(
+        gameCreatorRating: gameCreatorRating,
+        opponentRating: opponentRating,
+        winnerId: winnerId,
+        gameCreatorUid: gameCreatorUid,
+        opponentUid: opponentUid,
+      );
+
+      // Update the ratings in the database
+      await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
+        Constants.userRating: newRatings[gameCreatorUid],
+      });
+
+      await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
+        Constants.userRating: newRatings[opponentUid],
+      });
+
+      onSuccess();
+    } catch (e) {
+      onFail(e.toString());
+    }
+  }
+
+  Map<String, int> calculateNewRatings({
+    required int gameCreatorRating,
+    required int opponentRating,
+    required String winnerId,
+    required String gameCreatorUid,
+    required String opponentUid,
+  }) {
+    // Implement your rating calculation logic here
+    const int kFactor = 32;
+
+    double expectedScore(int ratingA, int ratingB) {
+      return 1 / (1 + pow(10, (ratingB - ratingA) / 400));
+    }
+
+    double gameCreatorExpected = expectedScore(gameCreatorRating, opponentRating);
+    double opponentExpected = expectedScore(opponentRating, gameCreatorRating);
+
+    int gameCreatorNewRating = gameCreatorRating;
+    int opponentNewRating = opponentRating;
+
+    if (winnerId == gameCreatorUid) {
+      gameCreatorNewRating += (kFactor * (1 - gameCreatorExpected)).round();
+      opponentNewRating += (kFactor * (0 - opponentExpected)).round();
+    } else if (winnerId == opponentUid) {
+      gameCreatorNewRating += (kFactor * (0 - gameCreatorExpected)).round();
+      opponentNewRating += (kFactor * (1 - opponentExpected)).round();
+    } else {
+      // Draw case
+      gameCreatorNewRating += (kFactor * (0.5 - gameCreatorExpected)).round();
+      opponentNewRating += (kFactor * (0.5 - opponentExpected)).round();
+    }
+
+    return {
+      gameCreatorUid: gameCreatorNewRating,
+      opponentUid: opponentNewRating,
+    };
+  }
+
+
 
 
 }

@@ -44,6 +44,8 @@ class Constants {
   static const String isPlaying = 'isPlaying';
   static const String gameId = 'gameId';
   static const String dateCreated = 'dateCreated';
+  static const String gameHistory = 'gameHistory';
+
   static const String whitesTime = 'whitesTime';
   static const String blacksTime = 'blacksTime';
 
@@ -58,6 +60,9 @@ class Constants {
   static const String isGameOver = 'isGameOver';
   static const String squareState = 'squareState';
   static const String moves = 'moves';
+  static const String gamesPlayed = 'gamesPlayed';
+  static const String wins = 'wins';
+  static const String losses = 'losses';
 
   static const String runningGames = 'runningGames';
   static const String game = 'game';

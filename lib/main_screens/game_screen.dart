@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 
+import '../constants.dart';
 import '../providers/custom_board_theme.dart';
 import '../providers/custom_piece_set.dart';
 import 'home_screen.dart';
@@ -243,10 +244,10 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       stockfish:stockfish,
       onNewGame:(){
-        gameProvider.resetGame(newGame: true);
-      },
+        gameProvider.resetGame(newGame: true);},
     );
   }
+
 
   void startTimer({
     required bool isWhiteTimer,
@@ -347,16 +348,17 @@ class _GameScreenState extends State<GameScreen> {
 
             String whitesTimer = getTimerToDisplay(gameProvider: gameProvider, isUser: true,);
             String blacksTimer = getTimerToDisplay(gameProvider: gameProvider, isUser: false,);
+            final isGameCreator = gameProvider.gameCreatorUid == userModel!.uid;
+            final opponentUid = isGameCreator ? gameProvider.userId : gameProvider.gameCreatorUid;
+            final opponentName = isGameCreator ? gameProvider.userName : gameProvider.gameCreatorName;
+            final opponentRating = isGameCreator ? gameProvider.userRating : gameProvider.gameCreatorRating;
 
             return SingleChildScrollView(
               child: Column(
                 children: [
                   // opponents data
-                  showOpponentsData(gameProvider: gameProvider, userModel: userModel!, timeToShow: blacksTimer,),
-
-
+                  showOpponentsData(gameProvider: gameProvider, userModel: userModel, timeToShow: blacksTimer,),
                   gameProvider.vsComputer ?
-
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: CustomBoardController(
@@ -389,7 +391,7 @@ class _GameScreenState extends State<GameScreen> {
                     backgroundImage: NetworkImage(userModel.image ),
                   ),
                   title: Text(userModel.name),
-                  subtitle : Text('Rating: ${userModel.playerRating}'),
+                  subtitle : Text('Rating: $opponentRating }'),
                   trailing:  Text(
                     whitesTimer,
                     style: const TextStyle(fontSize: 16),
@@ -578,6 +580,9 @@ class _GameScreenState extends State<GameScreen> {
             else{
               // Use the leaveGame method to handle leaving the game
               await gameProvider.leaveGame(userModel!.uid);
+              // FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameProvider.gameId).delete();
+
+
 
               Navigator.of(context).pop(true);
               Navigator.pushAndRemoveUntil(
@@ -638,8 +643,4 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
   }
-
-
-
-
 }
