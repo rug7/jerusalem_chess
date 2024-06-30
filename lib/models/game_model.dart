@@ -53,7 +53,7 @@ class GameModel{
       Constants.isWhitesTurn : isWhitesTurn,
       Constants.isGameOver : isGameOver,
       Constants.squareState : squareState,
-      Constants.moves : moves,
+      Constants.moves : moves.map((move) => move.toString()).toList(),
 
     };
   }

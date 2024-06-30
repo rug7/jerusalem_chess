@@ -3,7 +3,6 @@ import 'package:flutter_chess_1/authentication/searching_for_players.dart';
 import 'package:flutter_chess_1/constants.dart';
 import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';

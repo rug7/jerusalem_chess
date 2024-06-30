@@ -43,6 +43,8 @@ class UserModel{
   }
 
   factory UserModel.fromMap(Map<String,dynamic>data){
+    var gameHistoryFromData = data[Constants.gameHistory] as List<dynamic>? ?? [];
+    List<Map<String, dynamic>> gameHistoryList = gameHistoryFromData.map((game) => Map<String, dynamic>.from(game)).toList();
     return UserModel(
         uid: data[Constants.uid] ?? '',
         name: data[Constants.name] ?? '',
@@ -53,6 +55,7 @@ class UserModel{
       gamesPlayed: data[Constants.gamesPlayed] ?? 0,
       wins: data[Constants.wins] ?? 0,
       losses: data[Constants.losses] ?? 0,
+      gameHistory: gameHistoryList
     );
   }
 

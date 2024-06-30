@@ -401,7 +401,7 @@ class GameProvider extends ChangeNotifier{
     required bool whiteWon,
     required Function onNewGame,
     Stockfish ? stockfish,
-  }) {
+  }) async {
     //stop stockfish engine
 
     if(stockfish != null){
@@ -462,6 +462,28 @@ class GameProvider extends ChangeNotifier{
       }
     }
   }
+
+    // Save game to user history before deletion
+    List<String> moves = _state.moves.map((move) => move.toString()).toList();
+    await saveGameToUserHistory(gameId, moves);
+
+    // Update ratings
+    String winnerId = whiteWon ? gameCreatorUid : userId;
+    await updateRatings(
+    gameId: gameId,
+    winnerId: winnerId,
+    onSuccess: () {
+      print('Ratings updated successfully');
+    },
+    onFail: (error) {
+      print('Failed to update ratings: $error');
+    },
+    );
+
+    // Delete the game from availableGames and runningGames
+    await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+    await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -632,6 +654,8 @@ class GameProvider extends ChangeNotifier{
       });
       onSuccess();
     }on FirebaseException catch(e){
+      _isLoading = false;
+      notifyListeners();
       onFail(e.toString());
     }
 
@@ -826,6 +850,9 @@ class GameProvider extends ChangeNotifier{
     required BuildContext context,
     required UserModel userModel,
   })async{
+    if(_vsComputer){
+      return;
+    }
     CollectionReference gameCollectionReference = firebaseFirestore
         .collection(Constants.runningGames)
         .doc(gameId)
@@ -965,6 +992,26 @@ class GameProvider extends ChangeNotifier{
     required Move move,
     required bool isWhitesMove,
   }) async{
+    String currentUserId = isWhitesMove ? gameCreatorUid : userId;
+    String opponentId = isWhitesMove ? userId : gameCreatorUid;
+    String opponentName = isWhitesMove ? userName : gameCreatorName;
+    String creationTime = DateTime.now().millisecondsSinceEpoch.toString();
+    List<String> moves = [];
+
+    final gameSnapshot = await firebaseFirestore
+        .collection(Constants.runningGames)
+        .doc(gameId)
+        .collection(Constants.game)
+        .doc(gameId)
+        .get();
+    if (gameSnapshot.exists) {
+      final gameData = gameSnapshot.data() as Map<String, dynamic>;
+      moves = (gameData[Constants.moves] as List<dynamic>).map((move) => move.toString()).toList();
+    }
+
+    // Add the current move to the moves list
+    moves.add(convertMoveFormatProvider(move.toString()));
+
     //check if it's white's move
     if(isWhitesMove){
       await firebaseFirestore
@@ -1014,8 +1061,88 @@ class GameProvider extends ChangeNotifier{
             });
       });
     }
+    await saveMoveToUserHistory(
+      gameId: gameId,
+      userId: currentUserId,
+      opponentId: opponentId,
+      opponentName: opponentName,
+      moves: moves,
+      creationTime: creationTime,
+    );
+
 
   }
+
+  Future<void> saveMoveToUserHistory({
+    required String gameId,
+    required String userId,
+    required String opponentId,
+    required String opponentName,
+    required List<String> moves,
+    required String creationTime,
+  }) async {
+    try {
+      final userSnapshot = await firebaseFirestore.collection(Constants.users).doc(userId).get();
+      if (userSnapshot.exists) {
+        List<dynamic> gameHistory = userSnapshot.data()![Constants.gameHistory] ?? [];
+
+        // Check if the game already exists in the user's game history
+        bool gameExists = false;
+        for (var game in gameHistory) {
+          if (game['opponentName'] == opponentName && game['creationTime'] == creationTime) {
+            game['moves'] = moves;
+            gameExists = true;
+            break;
+          }
+        }
+
+        // If the game does not exist, add a new entry
+        if (!gameExists) {
+          gameHistory.add({
+            'opponentName': opponentName,
+            'creationTime': creationTime,
+            'moves': moves,
+          });
+        }
+
+        await firebaseFirestore.collection(Constants.users).doc(userId).update({
+          Constants.gameHistory: gameHistory,
+        });
+      }
+
+      final opponentSnapshot = await firebaseFirestore.collection(Constants.users).doc(opponentId).get();
+      if (opponentSnapshot.exists) {
+        List<dynamic> opponentGameHistory = opponentSnapshot.data()![Constants.gameHistory] ?? [];
+
+        // Check if the game already exists in the opponent's game history
+        bool opponentGameExists = false;
+        for (var game in opponentGameHistory) {
+          if (game['opponentName'] == userId && game['creationTime'] == creationTime) {
+            game['moves'] = moves;
+            opponentGameExists = true;
+            break;
+          }
+        }
+
+        // If the game does not exist, add a new entry
+        if (!opponentGameExists) {
+          opponentGameHistory.add({
+            'opponentName': userId,
+            'creationTime': creationTime,
+            'moves': moves,
+          });
+        }
+
+        await firebaseFirestore.collection(Constants.users).doc(opponentId).update({
+          Constants.gameHistory: opponentGameHistory,
+        });
+      }
+    } catch (e) {
+      print('Failed to save move to user history: $e');
+    }
+  }
+
+
 
   Future<void> leaveGame(String userId) async {
     final docRef = FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId);
@@ -1029,6 +1156,14 @@ class GameProvider extends ChangeNotifier{
           'isGameOver': true,
           'winnerId': 'opponent', // Set the opponent as the winner
         });
+        // Save game to user history before deletion
+        List<String> moves = (docSnapshot.data() as Map<String, dynamic>)[Constants.moves];
+        await saveGameToUserHistory(gameId, moves);
+
+        // Delete the game from availableGames and runningGames
+        await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+        await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+
       } else {
         print('Document not found: ${docRef.path}');
         // Handle the case where the document doesn't exist
@@ -1072,15 +1207,6 @@ class GameProvider extends ChangeNotifier{
                   style: TextStyle(color: Colors.orange),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
-                  resetNewGame(newGame: true);
-                  // reset the game
-                },
-                child: const Text('New Game',style: TextStyle(color: Colors.green)),
-              ),
             ],
           ),
         );
@@ -1090,6 +1216,9 @@ class GameProvider extends ChangeNotifier{
   }
 
   Stream<DocumentSnapshot> get gameMovesStream {
+    if (gameId.isEmpty) {
+      throw Exception("Game ID is not set");
+    }
     return firebaseFirestore
         .collection(Constants.runningGames)
         .doc(gameId)
@@ -1216,6 +1345,102 @@ class GameProvider extends ChangeNotifier{
       opponentUid: opponentNewRating,
     };
   }
+
+  Future<void> saveGameToUserHistory(String gameId, List<String> moves) async {
+    try {
+      final gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
+      if (gameSnapshot.exists) {
+        final gameData = gameSnapshot.data() as Map<String, dynamic>;
+
+        String gameCreatorUid = gameData[Constants.gameCreatorUid];
+        String opponentUid = gameData[Constants.userId];
+        String gameCreatorName = gameData[Constants.gameCreatorName];
+        String opponentName = gameData[Constants.userName];
+        String creationTime = gameData[Constants.dateCreated];
+
+        await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
+          Constants.gameHistory: FieldValue.arrayUnion([{
+            'opponentName': opponentName,
+            'creationTime': creationTime,
+            'moves': moves,
+          }])
+        });
+
+        await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
+          Constants.gameHistory: FieldValue.arrayUnion([{
+            'opponentName': gameCreatorName,
+            'creationTime': creationTime,
+            'moves': moves,
+          }])
+        });
+      }
+    } catch (e) {
+      print('Failed to save game history: $e');
+    }
+  }
+
+  Future<void> updateUserGameHistory(String userId, Map<String, dynamic> newGame) async {
+    DocumentReference userRef = firebaseFirestore.collection(Constants.users).doc(userId);
+
+    try {
+      // Fetch the user data
+      DocumentSnapshot userSnapshot = await userRef.get();
+      if (userSnapshot.exists) {
+        Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+
+        // Update the user's game history
+        List<dynamic> gameHistory = userData[Constants.gameHistory] ?? [];
+        gameHistory.add(newGame);
+
+        await userRef.update({
+          Constants.gameHistory: gameHistory,
+        });
+      }
+    } catch (e) {
+      print('Error updating game history: $e');
+    }
+  }
+  Future<void> endGame(String gameId, String winnerId, String player1Id, String player2Id, String moves) async {
+    // Fetch user data
+    DocumentSnapshot player1Snapshot = await firebaseFirestore.collection(Constants.users).doc(player1Id).get();
+    DocumentSnapshot player2Snapshot = await firebaseFirestore.collection(Constants.users).doc(player2Id).get();
+
+    if (player1Snapshot.exists && player2Snapshot.exists) {
+      UserModel player1 = UserModel.fromMap(player1Snapshot.data() as Map<String, dynamic>);
+      UserModel player2 = UserModel.fromMap(player2Snapshot.data() as Map<String, dynamic>);
+
+      // Update ratings
+      player1.updateRating(player2.playerRating, winnerId == player1Id);
+      player2.updateRating(player1.playerRating, winnerId == player2Id);
+
+      // Create game record
+      Map<String, dynamic> gameRecord = {
+        'opponentName': player2.name,
+        'creationTime': DateTime.now().toString(),
+        'moves': moves,
+      };
+      player1.addGameToHistory(
+        opponentName: player2.name,
+        creationTime: DateTime.now().toString(),
+        moves: moves,
+      );
+      player2.addGameToHistory(
+        opponentName: player1.name,
+        creationTime: DateTime.now().toString(),
+        moves: moves,
+      );
+
+      // Update Firestore
+      await firebaseFirestore.collection(Constants.users).doc(player1Id).update(player1.toMap());
+      await firebaseFirestore.collection(Constants.users).doc(player2Id).update(player2.toMap());
+    }
+
+    // Remove the game from Firestore
+    await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+    await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+  }
+
+
 
 
 

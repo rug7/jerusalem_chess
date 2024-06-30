@@ -32,7 +32,10 @@ class _GameScreenState extends State<GameScreen> {
     final gameProvider =  context.read<GameProvider>();
     gameProvider.resetGame(newGame: false);
     super.initState();
-    gameProvider.listenToGameUpdates();
+    if(!gameProvider.vsComputer){
+      gameProvider.listenToGameUpdates();
+    }
+
 
     if(mounted){
       letOtherPlayerPlayFirst();
