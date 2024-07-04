@@ -1082,66 +1082,25 @@ class GameProvider extends ChangeNotifier{
     required String creationTime,
   }) async {
     try {
-      final userSnapshot = await firebaseFirestore.collection(Constants.users).doc(userId).get();
-      if (userSnapshot.exists) {
-        List<dynamic> gameHistory = userSnapshot.data()![Constants.gameHistory] ?? [];
+      await firebaseFirestore.collection(Constants.users).doc(userId).update({
+        Constants.gameHistory: FieldValue.arrayUnion([{
+          'opponentName': opponentName,
+          'creationTime': creationTime,
+          'moves': moves,
+        }])
+      });
 
-        // Check if the game already exists in the user's game history
-        bool gameExists = false;
-        for (var game in gameHistory) {
-          if (game['opponentName'] == opponentName && game['creationTime'] == creationTime) {
-            game['moves'] = moves;
-            gameExists = true;
-            break;
-          }
-        }
-
-        // If the game does not exist, add a new entry
-        if (!gameExists) {
-          gameHistory.add({
-            'opponentName': opponentName,
-            'creationTime': creationTime,
-            'moves': moves,
-          });
-        }
-
-        await firebaseFirestore.collection(Constants.users).doc(userId).update({
-          Constants.gameHistory: gameHistory,
-        });
-      }
-
-      final opponentSnapshot = await firebaseFirestore.collection(Constants.users).doc(opponentId).get();
-      if (opponentSnapshot.exists) {
-        List<dynamic> opponentGameHistory = opponentSnapshot.data()![Constants.gameHistory] ?? [];
-
-        // Check if the game already exists in the opponent's game history
-        bool opponentGameExists = false;
-        for (var game in opponentGameHistory) {
-          if (game['opponentName'] == userId && game['creationTime'] == creationTime) {
-            game['moves'] = moves;
-            opponentGameExists = true;
-            break;
-          }
-        }
-
-        // If the game does not exist, add a new entry
-        if (!opponentGameExists) {
-          opponentGameHistory.add({
-            'opponentName': userId,
-            'creationTime': creationTime,
-            'moves': moves,
-          });
-        }
-
-        await firebaseFirestore.collection(Constants.users).doc(opponentId).update({
-          Constants.gameHistory: opponentGameHistory,
-        });
-      }
+      await firebaseFirestore.collection(Constants.users).doc(opponentId).update({
+        Constants.gameHistory: FieldValue.arrayUnion([{
+          'opponentName': userId,
+          'creationTime': creationTime,
+          'moves': moves,
+        }])
+      });
     } catch (e) {
       print('Failed to save move to user history: $e');
     }
   }
-
 
 
   Future<void> leaveGame(String userId) async {
