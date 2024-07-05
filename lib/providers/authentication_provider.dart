@@ -83,7 +83,7 @@ class AuthenticationProvider extends ChangeNotifier{
       notifyListeners();
     });
   }
-  
+
   //store user data to shared preferences
   Future saveUserDataToSharedPref() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -98,7 +98,7 @@ class AuthenticationProvider extends ChangeNotifier{
   Future getUserDataToSharedPref() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String data = sharedPreferences.getString(Constants.userModel) ?? '';
-    
+
     _userModel = UserModel.fromMap(jsonDecode(data));
     _uid = _userModel!.uid;
     notifyListeners();
@@ -157,6 +157,41 @@ class AuthenticationProvider extends ChangeNotifier{
     }on FirebaseException catch (e){
       _isLoading = false;
       notifyListeners();
+      onFail(e.toString());
+    }
+  }
+  void updateUserImage({
+    required String uid,
+    required File? fileImage,
+    required Function onSuccess,
+    required Function(String) onFail,
+  }) async {
+    try {
+      if (fileImage == null) {
+        // Handle deletion case, set profile image to null or default value in Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'image': null}); // Update 'image' field to null in Firestore
+      } else {
+        String imageUrl = await storeFileImageToStorage(
+          reference: '${Constants.userImages}/$uid.png',
+          file: fileImage,
+        );
+
+        // Update the user's image URL in Firestore
+        await firebaseFirestore.collection(Constants.users).doc(uid).update({
+          'image': imageUrl,
+        });
+
+        // Update local userModel in AuthenticationProvider
+        _userModel!.image = imageUrl; // Assuming _userModel is already fetched
+      }
+
+      onSuccess();
+      notifyListeners(); // Notify listeners of the change
+
+    } on FirebaseException catch (e) {
       onFail(e.toString());
     }
   }
