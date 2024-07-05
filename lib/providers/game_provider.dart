@@ -122,7 +122,7 @@ class GameProvider extends ChangeNotifier{
       // }else{
       //   _player = Squares.white;
       // }
-     notifyListeners();
+      notifyListeners();
     }
     //reset game
     _game = bishop.Game(variant: bishop.Variant.standard());
@@ -257,8 +257,8 @@ class GameProvider extends ChangeNotifier{
   void setPlayerColor({required int player}){
     _player = player;
     _playerColor =
-        player == Squares.white ? PlayerColor.white : PlayerColor.black;
-        notifyListeners();
+    player == Squares.white ? PlayerColor.white : PlayerColor.black;
+    notifyListeners();
   }
 
   //set game difficulty
@@ -367,30 +367,31 @@ class GameProvider extends ChangeNotifier{
     required BuildContext context,
     required Function onNewGame,
     Stockfish? stockfish,
-  }){
-    if(_vsComputer && !_aiThinking) {
-      // Only check for game over if it's the player's turn and not waiting for AI move
-      if(game.gameOver){
-        if(stockfish != null){
-          stockfish.stdin = UCICommands.stop;
-        }
-        //pause both timers
-        pauseWhiteTimer();
-        pauseBlackTimer();
-
-        //Cancel the game stream subscription
-        gameStreamSubscription!.cancel();
-        if(context.mounted){
-          gameOverDialog(
-              context: context,
-              stockfish: stockfish,
-              timeOut: false,
-              whiteWon: false,
-              onNewGame: onNewGame);
-        }
+  }) {
+    if (game.gameOver) {
+      if (stockfish != null) {
+        stockfish.stdin = UCICommands.stop;
       }
+      // Pause both timers
+      pauseWhiteTimer();
+      pauseBlackTimer();
+
+      // Cancel the game stream subscription
+      gameStreamSubscription?.cancel();
+
+      if (context.mounted) {
+        gameOverDialog(
+          context: context,
+          stockfish: stockfish,
+          timeOut: false,
+          whiteWon: false,
+          onNewGame: onNewGame,
+        );
+      }
+
     }
   }
+
 
 
 
@@ -427,63 +428,67 @@ class GameProvider extends ChangeNotifier{
     else {
       //it's not timed out yet...
       if (game.result != null) {
-      resultsToShow = game.result!.readable;
+        resultsToShow = game.result!.readable;
 
-      if (game.drawn) {
-        //game is a draw
-        String whiteResults = game.result!
-            .scoreString
-            .split('-')
-            .first;
-        String blackResults = game.result!
-            .scoreString
-            .split('-')
-            .last;
-        whiteScoreToShow = _whiteScore += int.parse(whiteResults);
-        blackScoreToShow = _blackScore += int.parse(blackResults);
-      } else if (game.winner == 0) {
-        //meaning white is the winner
-        String whiteResults = game.result!
-            .scoreString
-            .split('-')
-            .first;
-        whiteScoreToShow = _whiteScore += int.parse(whiteResults);
-      }
-      else if (game.winner == 1) {
-        String blackResults = game.result!
-            .scoreString
-            .split('-')
-            .last;
-        blackScoreToShow = _blackScore += int.parse(blackResults);
-      }
-      else if (game.stalemate) {
-        whiteScoreToShow = whiteScore;
-        blackScoreToShow = blackScore;
+        if (game.drawn) {
+          //game is a draw
+          String whiteResults = game.result!
+              .scoreString
+              .split('-')
+              .first;
+          String blackResults = game.result!
+              .scoreString
+              .split('-')
+              .last;
+          whiteScoreToShow = _whiteScore += int.parse(whiteResults);
+          blackScoreToShow = _blackScore += int.parse(blackResults);
+        } else if (game.winner == 0) {
+          //meaning white is the winner
+          String whiteResults = game.result!
+              .scoreString
+              .split('-')
+              .first;
+          whiteScoreToShow = _whiteScore += int.parse(whiteResults);
+        }
+        else if (game.winner == 1) {
+          String blackResults = game.result!
+              .scoreString
+              .split('-')
+              .last;
+          blackScoreToShow = _blackScore += int.parse(blackResults);
+        }
+        else if (game.stalemate) {
+          whiteScoreToShow = whiteScore;
+          blackScoreToShow = blackScore;
+        }
       }
     }
-  }
 
     // Save game to user history before deletion
-    List<String> moves = _state.moves.map((move) => move.toString()).toList();
-    await saveGameToUserHistory(gameId, moves);
+    if(!vsComputer){
+      List<String> moves = _state.moves.map((move) => move.toString()).toList();
+      await saveGameToUserHistory(gameId, moves);
 
-    // Update ratings
-    String winnerId = whiteWon ? gameCreatorUid : userId;
-    await updateRatings(
-    gameId: gameId,
-    winnerId: winnerId,
-    onSuccess: () {
-      print('Ratings updated successfully');
-    },
-    onFail: (error) {
-      print('Failed to update ratings: $error');
-    },
-    );
+      // Update ratings
+      String winnerId = whiteWon ? gameCreatorUid : userId;
+      await updateRatings(
+        gameId: gameId,
+        winnerId: winnerId,
+        onSuccess: () {
+          print('Ratings updated successfully');
+        },
+        onFail: (error) {
+          print('Failed to update ratings: $error');
+        },
+      );
 
-    // Delete the game from availableGames and runningGames
-    await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
-    await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+      // Delete the game from availableGames and runningGames
+      await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+      await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
 
+
+
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -549,6 +554,7 @@ class GameProvider extends ChangeNotifier{
         ],
       ),
     );
+
   }
 
   String _waitingText = '';
@@ -562,10 +568,10 @@ class GameProvider extends ChangeNotifier{
 
   //search for players
   Future searchForPlayer({
-  required UserModel userModel,
-  required Function() onSuccess,
-  required Function(String) onFail,
-})async{
+    required UserModel userModel,
+    required Function() onSuccess,
+    required Function(String) onFail,
+  })async{
     try{
       //get all available games
       final availableGames = await firebaseFirestore.collection(Constants.availableGames).get();
@@ -573,14 +579,14 @@ class GameProvider extends ChangeNotifier{
       //check if there are any available games
       if(availableGames.docs.isNotEmpty){
         final List<DocumentSnapshot> gamesList = availableGames
-                                            .docs.where((element) => element[Constants.isPlaying] == false)
-                                            .toList();
+            .docs.where((element) => element[Constants.isPlaying] == false)
+            .toList();
 
         //check if there are no games where isPlaying == false
         if(gamesList.isEmpty){
           //TODO THE GET TRANSLATIONS
           _waitingText ='جاري البحث عن لاعب، الرجاء الإنتظار';
-              //getTranslation('searching', _translations);
+          //getTranslation('searching', _translations);
           notifyListeners();
           // create a new game
           createNewGameInFireStore(
@@ -687,7 +693,7 @@ class GameProvider extends ChangeNotifier{
     required UserModel userModel,
     required Function() onSuccess,
     required Function(String) onFail,
-})async{
+  })async{
     try{
       final myGame = await firebaseFirestore.collection(Constants.availableGames).doc(userModel.uid).get();
 
@@ -711,21 +717,21 @@ class GameProvider extends ChangeNotifier{
       }
       //initialize the game model
       final gameModel = GameModel(
-          gameId: _gameId,
-          gameCreatorUid: _gameCreatorUid,
-          userId: _userId,
-          positionFen: getPositionFen(),
-          winnerId: '',
-          whitesTime: game[Constants.whitesTime],
-          blacksTime: game[Constants.blacksTime],
-          whitesCurrentMove: '',
-          blacksCurrentMove: '',
-          boardState: state.board.flipped().toString(),
-          playState: PlayState.ourTurn.name.toString(),
-          isWhitesTurn: true,
-          isGameOver: false,
-          squareState: state.player,
-          moves: state.moves.toList(),
+        gameId: _gameId,
+        gameCreatorUid: _gameCreatorUid,
+        userId: _userId,
+        positionFen: getPositionFen(),
+        winnerId: '',
+        whitesTime: game[Constants.whitesTime],
+        blacksTime: game[Constants.blacksTime],
+        whitesCurrentMove: '',
+        blacksCurrentMove: '',
+        boardState: state.board.flipped().toString(),
+        playState: PlayState.ourTurn.name.toString(),
+        isWhitesTurn: true,
+        isGameOver: false,
+        squareState: state.player,
+        moves: state.moves.toList(),
       );
 
       //create a game controller directory on firestore
@@ -759,7 +765,7 @@ class GameProvider extends ChangeNotifier{
       await setGameDataAndSettings(game: game, userModel: userModel);
 
 
-    onSuccess();
+      onSuccess();
     }on FirebaseException catch(e){
       onFail(e.toString());
     }
@@ -801,27 +807,27 @@ class GameProvider extends ChangeNotifier{
 
   //set game data and settings
   Future<void> setGameDataAndSettings({
-  required DocumentSnapshot<Object?>game,
-  required UserModel userModel,  
+    required DocumentSnapshot<Object?>game,
+    required UserModel userModel,
   })async{
     //get the reference to the game we are joining
     final opponentsGame = firebaseFirestore
-                                .collection(Constants.availableGames)
-                                .doc(game[Constants.gameCreatorUid]);
-    
+        .collection(Constants.availableGames)
+        .doc(game[Constants.gameCreatorUid]);
+
     //time - 0:10:00.0000000
     List<String> whitesTimeParts = game[Constants.whitesTime].split(':');
     List<String> blacksTimeParts = game[Constants.blacksTime].split(':');
-    
+
     int whitesGameTime = int.parse(whitesTimeParts[0]) * 60 + int.parse(whitesTimeParts[1]);
     int blacksGameTime = int.parse(blacksTimeParts[0]) * 60 + int.parse(blacksTimeParts[1]);
-    
+
     //set game time
     await setGameTime(
         newSavedWhiteTime: whitesGameTime.toString(),
         newSavedBlackTime: blacksGameTime.toString()
     );
-    
+
     //update the created game in firestore
     await opponentsGame.update({
       Constants.isPlaying: true,
@@ -864,27 +870,53 @@ class GameProvider extends ChangeNotifier{
         final DocumentSnapshot game = event.docs.first;
         try {
 
-        //check if we are white - this means we are the game creator
-        if(game[Constants.gameCreatorUid] ==  userModel.uid){
-          //check if is white's turn
-          if(game[Constants.isWhitesTurn]){
-            _isWhitesTurn = true;
+          //check if we are white - this means we are the game creator
+          if(game[Constants.gameCreatorUid] ==  userModel.uid){
+            //check if is white's turn
+            if(game[Constants.isWhitesTurn]){
+              _isWhitesTurn = true;
 
-            //check if blacksCurrentMove is not empty or equal to the old move- this means blacks has played his move
-            //this means it's our turn to play
-            if(game[Constants.blacksCurrentMove] !=blacksMove){
+              //check if blacksCurrentMove is not empty or equal to the old move- this means blacks has played his move
+              //this means it's our turn to play
+              if(game[Constants.blacksCurrentMove] !=blacksMove){
+                //update the whites UI
+
+                Move convertedMove = convertMoveStringToMove(
+                    moveString: game[Constants.blacksCurrentMove]
+                );
+
+                bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+
+                if(result){
+                  setSquaresState().whenComplete((){
+                    pauseBlackTimer();
+                    startWhitesTimer(context: context, onNewGame: (){});
+
+                    gameOverListener(context: context, onNewGame: (){});
+                  });
+                }
+              }
+              notifyListeners();
+            }
+
+          }else{
+            //not the game creator
+            _isWhitesTurn = false;
+
+            //check if white has played his move
+            if(game[Constants.whitesCurrentMove] !=whitesMove){
               //update the whites UI
 
               Move convertedMove = convertMoveStringToMove(
-                  moveString: game[Constants.blacksCurrentMove]
+                  moveString: game[Constants.whitesCurrentMove]
               );
 
-              bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
 
+              bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
               if(result){
                 setSquaresState().whenComplete((){
-                  pauseBlackTimer();
-                  startWhitesTimer(context: context, onNewGame: (){});
+                  pauseWhiteTimer();
+                  startBlacksTimer(context: context, onNewGame: (){});
 
                   gameOverListener(context: context, onNewGame: (){});
                 });
@@ -892,32 +924,6 @@ class GameProvider extends ChangeNotifier{
             }
             notifyListeners();
           }
-
-        }else{
-          //not the game creator
-          _isWhitesTurn = false;
-
-          //check if white has played his move
-          if(game[Constants.whitesCurrentMove] !=whitesMove){
-            //update the whites UI
-
-            Move convertedMove = convertMoveStringToMove(
-                moveString: game[Constants.whitesCurrentMove]
-            );
-            
-            
-            bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
-            if(result){
-              setSquaresState().whenComplete((){
-                pauseWhiteTimer();
-                startBlacksTimer(context: context, onNewGame: (){});
-
-                gameOverListener(context: context, onNewGame: (){});
-              });
-            }
-          }
-          notifyListeners();
-        }
         } catch (e) {
           print('Error processing game changes: $e');
         }
@@ -956,7 +962,7 @@ class GameProvider extends ChangeNotifier{
 
   //convert move string to move format
   Move convertMoveStringToMove({
-  required String moveString,
+    required String moveString,
   }) {
     //Split the move string into it's components
     List<String> parts = moveString.split('-');
@@ -991,87 +997,86 @@ class GameProvider extends ChangeNotifier{
     required BuildContext context,
     required Move move,
     required bool isWhitesMove,
-  }) async{
-    String currentUserId = isWhitesMove ? gameCreatorUid : userId;
-    String opponentId = isWhitesMove ? userId : gameCreatorUid;
-    String opponentName = isWhitesMove ? userName : gameCreatorName;
-    String creationTime = DateTime.now().millisecondsSinceEpoch.toString();
-    List<String> moves = [];
+  }) async {
+    if (!_vsComputer) {
+      // Original code to save move to Firestore...
+      String currentUserId = isWhitesMove ? gameCreatorUid : userId;
+      String opponentId = isWhitesMove ? userId : gameCreatorUid;
+      String opponentName = isWhitesMove ? userName : gameCreatorName;
+      String creationTime = DateTime.now().millisecondsSinceEpoch.toString();
+      List<String> moves = [];
 
-    final gameSnapshot = await firebaseFirestore
-        .collection(Constants.runningGames)
-        .doc(gameId)
-        .collection(Constants.game)
-        .doc(gameId)
-        .get();
-    if (gameSnapshot.exists) {
-      final gameData = gameSnapshot.data() as Map<String, dynamic>;
-      moves = (gameData[Constants.moves] as List<dynamic>).map((move) => move.toString()).toList();
-    }
-
-    // Add the current move to the moves list
-    moves.add(convertMoveFormatProvider(move.toString()));
-
-    //check if it's white's move
-    if(isWhitesMove){
-      await firebaseFirestore
+      final gameSnapshot = await firebaseFirestore
           .collection(Constants.runningGames)
           .doc(gameId)
           .collection(Constants.game)
           .doc(gameId)
-          .update({
-        Constants.positionFen: getPositionFen(),
-        Constants.whitesCurrentMove : move.toString(),
-        Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
-        Constants.isWhitesTurn: false,
-        Constants.playState: PlayState.theirTurn.name.toString(),
+          .get();
+      if (gameSnapshot.exists) {
+        final gameData = gameSnapshot.data() as Map<String, dynamic>;
+        moves = (gameData[Constants.moves] as List<dynamic>).map((move) => move.toString()).toList();
+      }
+
+      // Add the current move to the moves list
+      moves.add(convertMoveFormatProvider(move.toString()));
+
+      // Check if it's white's move
+      if (isWhitesMove) {
+        await firebaseFirestore
+            .collection(Constants.runningGames)
+            .doc(gameId)
+            .collection(Constants.game)
+            .doc(gameId)
+            .update({
+          Constants.positionFen: getPositionFen(),
+          Constants.whitesCurrentMove: move.toString(),
+          Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+          Constants.isWhitesTurn: false,
+          Constants.playState: PlayState.theirTurn.name.toString(),
         });
 
-      //pause white's timer and start black's timer
-      pauseWhiteTimer();
-      Future.delayed(const Duration(milliseconds: 100)).whenComplete((){
-        startBlacksTimer(
+        // Pause white's timer and start black's timer
+        pauseWhiteTimer();
+        Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+          startBlacksTimer(
             context: context,
-            onNewGame: (){
+            onNewGame: () {},
+          );
+        });
+      } else {
+        await firebaseFirestore
+            .collection(Constants.runningGames)
+            .doc(gameId)
+            .collection(Constants.game)
+            .doc(gameId)
+            .update({
+          Constants.positionFen: getPositionFen(),
+          Constants.blacksCurrentMove: move.toString(),
+          Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+          Constants.isWhitesTurn: true,
+          Constants.playState: PlayState.ourTurn.name.toString(),
+        });
 
-            });
-      });
-    }
-    else{
-      await firebaseFirestore
-          .collection(Constants.runningGames)
-          .doc(gameId)
-          .collection(Constants.game)
-          .doc(gameId)
-          .update({
-        Constants.positionFen: getPositionFen(),
-        Constants.blacksCurrentMove : move.toString(),
-        Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
-        Constants.isWhitesTurn: true,
-        Constants.playState: PlayState.ourTurn.name.toString(),
-      });
-
-      //pause black's timer and start black's timer
-      pauseBlackTimer();
-      Future.delayed(const Duration(milliseconds: 100)).whenComplete((){
-        startWhitesTimer(
+        // Pause black's timer and start white's timer
+        pauseBlackTimer();
+        Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+          startWhitesTimer(
             context: context,
-            onNewGame: (){
-
-            });
-      });
+            onNewGame: () {},
+          );
+        });
+      }
+      await saveMoveToUserHistory(
+        gameId: gameId,
+        userId: currentUserId,
+        opponentId: opponentId,
+        opponentName: opponentName,
+        moves: moves,
+        creationTime: creationTime,
+      );
     }
-    await saveMoveToUserHistory(
-      gameId: gameId,
-      userId: currentUserId,
-      opponentId: opponentId,
-      opponentName: opponentName,
-      moves: moves,
-      creationTime: creationTime,
-    );
-
-
   }
+
 
   Future<void> saveMoveToUserHistory({
     required String gameId,
@@ -1274,36 +1279,38 @@ class GameProvider extends ChangeNotifier{
     required Function onSuccess,
     required Function onFail,
   }) async {
-    try {
-      DocumentSnapshot gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
-      Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    if (!_vsComputer) {
+      try {
+        DocumentSnapshot gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
+        Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
 
-      String gameCreatorUid = gameData[Constants.gameCreatorUid];
-      String opponentUid = gameData[Constants.userId];
-      int gameCreatorRating = gameData[Constants.gameCreatorRating];
-      int opponentRating = gameData[Constants.userRating];
+        String gameCreatorUid = gameData[Constants.gameCreatorUid];
+        String opponentUid = gameData[Constants.userId];
+        int gameCreatorRating = gameData[Constants.gameCreatorRating];
+        int opponentRating = gameData[Constants.userRating];
 
-      // Determine the new ratings
-      Map<String, int> newRatings = calculateNewRatings(
-        gameCreatorRating: gameCreatorRating,
-        opponentRating: opponentRating,
-        winnerId: winnerId,
-        gameCreatorUid: gameCreatorUid,
-        opponentUid: opponentUid,
-      );
+        // Determine the new ratings
+        Map<String, int> newRatings = calculateNewRatings(
+          gameCreatorRating: gameCreatorRating,
+          opponentRating: opponentRating,
+          winnerId: winnerId,
+          gameCreatorUid: gameCreatorUid,
+          opponentUid: opponentUid,
+        );
 
-      // Update the ratings in the database
-      await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
-        Constants.userRating: newRatings[gameCreatorUid],
-      });
+        // Update the ratings in the database
+        await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
+          Constants.userRating: newRatings[gameCreatorUid],
+        });
 
-      await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
-        Constants.userRating: newRatings[opponentUid],
-      });
+        await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
+          Constants.userRating: newRatings[opponentUid],
+        });
 
-      onSuccess();
-    } catch (e) {
-      onFail(e.toString());
+        onSuccess();
+      } catch (e) {
+        onFail(e.toString());
+      }
     }
   }
 
@@ -1346,6 +1353,10 @@ class GameProvider extends ChangeNotifier{
   }
 
   Future<void> saveGameToUserHistory(String gameId, List<String> moves) async {
+    if (gameId.isEmpty) {
+      print('Game ID is empty');
+      return;
+    }
     try {
       final gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
       if (gameSnapshot.exists) {

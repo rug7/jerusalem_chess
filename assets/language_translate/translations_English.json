@@ -56,7 +56,18 @@
   "ge": "Good evening, ",
 
   "gameInProg": "Game is still in progress",
-  "go": "Game Over"
+  "go": "Game Over",
+  "settings": "Settings",
+  "DarkMode": "Dark Mode",
+  "Remember Login Details": "Remember Login Details",
+  "helpSupport": "Help & Support",
+  "signOut": "Sign Out",
+  "language": "Language",
+  "notifications": "Notifications",
+  "gameHistory": "Game History",
+  "privacySecurity": "Privacy & Security",
+  "Arabic": "Arabic",
+  "English": "English"
 
 
 

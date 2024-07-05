@@ -18,6 +18,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+
   bool rememberLoginDetails = false;
   String profileImage = 'assets/profile_picture.png'; // Initial profile image path
   late ThemeLanguageProvider _themeLanguageProvider;
@@ -58,6 +60,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (croppedFile != null) {
         finalFileImage = File(croppedFile.path);
+        void _loadTranslations(String language) async {
+          try {
+            var translations = await loadTranslations(language);
+            if (mounted) {
+              setState(() {
+                this.translations = translations;
+              });
+            }
+          } catch (e) {
+            print('Error loading translations: $e');
+          }
+
+
+
+        }
+
+
+
         setState(() {
           profileImage =
               finalFileImage!.path; // Update profile image optimistically
@@ -89,6 +109,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       print('Error cropping image: $e');
     }
   }
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
 
   @override
   void didChangeDependencies() {
@@ -308,86 +333,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void showOptionsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Change Profile Picture'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: Text('Take Photo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  selectImage(fromCamera: true);
-                },
+    void showOptionsDialog() async {
+      try {
+        final result = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Change Profile Picture'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.camera_alt),
+                    title: Text('Take Photo'),
+                    onTap: () {
+                      Navigator.pop(context, 'camera');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.image),
+                    title: Text('Choose from Gallery'),
+                    onTap: () {
+                      Navigator.pop(context, 'gallery');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete),
+                    title: Text('Delete Current Photo'),
+                    onTap: () {
+                      Navigator.pop(context, 'delete');
+                    },
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.image),
-                title: Text('Choose from Gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  selectImage(fromCamera: false);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete),
-                title: Text('Delete Current Photo'),
-                onTap: () async {
-                  Navigator.pop(context);
-
-                  try {
-                    final authProvider = context.read<AuthenticationProvider>();
-                    final defaultImage = AssetsManager.userIcon;
-
-                    // Update local state optimistically
-                    setState(() {
-                      profileImage = defaultImage;
-                      finalFileImage = null;
-                    });
-
-                    // Update Firestore
-                    authProvider.updateUserImage(
-                      uid: authProvider.userModel!.uid,
-                      fileImage: null, // Pass null to indicate deletion
-                      onSuccess: () {
-                        if (mounted) {
-                          // Update userModel.image directly
-                          authProvider.userModel!.image = defaultImage;
-
-                          // Show Snackbar
-                          showSnackBar(
-                            context: context,
-                            content: 'Profile image updated successfully.',
-                          );
-                        }
-                      },
-                      onFail: (error) {
-                        if (mounted) {
-                          showSnackBar(
-                            context: context,
-                            content: 'Failed to update profile image: $error',
-                          );
-                        }
-                      },
-                    );
-
-
-                  } catch (e) {
-                    print('Error deleting image: $e');
-                  }
-                },
-              ),
-            ],
-          ),
+            );
+          },
         );
-      },
-    );
-  }
 
+        if (result == 'camera') {
+          selectImage(fromCamera: true);
+        } else if (result == 'gallery') {
+          selectImage(fromCamera: false);
+        } else if (result == 'delete') {
+          deleteCurrentPhoto();
+        }
+      } catch (e) {
+        print('Error showing options dialog: $e');
+      }
+    }
+
+  void deleteCurrentPhoto() async {
+    try {
+      final authProvider = context.read<AuthenticationProvider>();
+      final defaultImage = AssetsManager.userIcon;
+
+      // Update local state optimistically with a unique query parameter to bust the cache
+      setState(() {
+        profileImage = "$defaultImage?updated=${DateTime.now().millisecondsSinceEpoch}";
+        finalFileImage = null;
+      });
+
+      // Update Firestore
+      authProvider.updateUserImage(
+        uid: authProvider.userModel!.uid,
+        fileImage: null, // Pass null to indicate deletion
+        onSuccess: () {
+          // Show SnackBar after image is successfully deleted
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profile image deleted successfully.'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+
+          // Update state after deletion with cache-busting parameter
+          if (mounted) {
+            setState(() {
+              profileImage = "$defaultImage?updated=${DateTime.now().millisecondsSinceEpoch}";
+            });
+          }
+        },
+        onFail: (error) {
+          // Handle failure to delete image
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to update profile image: $error'),
+                backgroundColor: Colors.red,
+              ),
+            );
+
+            // Rollback state update on failure if necessary
+            setState(() {
+              profileImage = "${authProvider.userModel?.image ?? defaultImage}?updated=${DateTime.now().millisecondsSinceEpoch}";
+            });
+          }
+        },
+      );
+    } catch (e) {
+      print('Error deleting image: $e');
+    }
+  }
 
 
 }

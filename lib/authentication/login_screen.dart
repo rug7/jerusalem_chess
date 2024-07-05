@@ -224,11 +224,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   InkWell(
                     onTap: (){
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
-                            (Route<dynamic> route) => false,
-                      );
                     },
                     child: SizedBox(
                       width: 120,

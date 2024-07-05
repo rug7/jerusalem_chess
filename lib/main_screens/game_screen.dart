@@ -508,7 +508,7 @@ class _GameScreenState extends State<GameScreen> {
           radius: 25,
           backgroundImage: AssetImage(AssetsManager.stockfishIcon),
         ),
-        title: const Text ('Stockfish'),
+        title: const Text ('Agent Chess '),
         subtitle :  Text('Rating:${gameProvider.gameLevel * 1000}'),
         trailing:  Text(
           timeToShow,
