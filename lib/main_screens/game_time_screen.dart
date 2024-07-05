@@ -81,7 +81,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
   Widget build(BuildContext context) {
     final bool isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
-    // final oppColor = isLightMode ? Colors.black : Colors.white;
+    final oppColor = isLightMode ? Colors.black : Colors.white;
 
     return Scaffold(
       backgroundColor: textColor,
@@ -89,7 +89,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('chooseGameTime', _translations,),
-          style: TextStyle(color: textColor,
+          style: const TextStyle(color: Colors.white,
               fontFamily: 'IBM Plex Sans Arabic',
               fontWeight: FontWeight.w700),
         ),
@@ -101,7 +101,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
             onPressed: _themeLanguageProvider.toggleThemeMode,
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.language, color: textColor),
+            icon:const  Icon(Icons.language, color: Colors.white),
             onSelected: _themeLanguageProvider.changeLanguage,
             itemBuilder: (BuildContext context) =>
             [
@@ -117,7 +117,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
           ),
         ],
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },

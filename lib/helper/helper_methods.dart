@@ -15,14 +15,16 @@ Widget buildGameType(
   return InkWell(
     onTap: onTap,
     child: Card(
+      // color: Colors.transparent,
+      // elevation: 0,
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        icon != null ? Icon(icon) :gameTime! =='60+0'? const SizedBox.shrink() : Text(gameTime),
+        icon != null ? Icon(icon,size: 48,) :gameTime! =='60+0'? const SizedBox.shrink() : Text(gameTime),
         const SizedBox(
           height: 10,
         ),
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 14,fontFamily:'IBM Plex Sans Arabic'),
         )
       ]),
     ),

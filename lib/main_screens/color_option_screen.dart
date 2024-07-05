@@ -61,7 +61,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('setUpText', translations),
-          style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
+          style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
@@ -70,7 +70,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
             onPressed: _themeLanguageProvider.toggleThemeMode, // Use ThemeLanguageProvider
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.language, color: textColor),
+            icon: const Icon(Icons.language, color: Colors.white),
             onSelected: (String selectedLanguage) {
               _themeLanguageProvider.changeLanguage(selectedLanguage); // Use ThemeLanguageProvider
               reloadTranslations(selectedLanguage);
@@ -88,7 +88,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
           ),
         ],
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },

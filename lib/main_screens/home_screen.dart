@@ -73,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final gameProvider = context.read<GameProvider>();
     final isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
+
+
     final user = context.watch<AuthenticationProvider>().userModel;
 
     return Scaffold(
@@ -81,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
           user?.name != null ? '${_getGreeting()} ${user?.name}' : getTranslation('homeTitle', _translations),
-          style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
+          style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
           textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
         ),
         actions: [
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _themeLanguageProvider.toggleThemeMode,
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.language, color: textColor),
+            icon: const Icon(Icons.language, color: Colors.white),
             onSelected: _themeLanguageProvider.changeLanguage,
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem<String>(

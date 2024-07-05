@@ -332,10 +332,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_cropper
-      sha256: d31be025c744ac1bf52d1f49cfdd92fd421e7e45ddadaaac0b39901f67c2a7e3
+      sha256: f111a37a88457f661aebe937108c752c59791cafa9bc4e92ced07ebd87917743
       url: "https://pub.dev"
     source: hosted
-    version: "7.1.0"
+    version: "7.0.4"
   image_cropper_for_web:
     dependency: transitive
     description:
