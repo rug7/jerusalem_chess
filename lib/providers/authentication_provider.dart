@@ -212,7 +212,7 @@ class AuthenticationProvider extends ChangeNotifier{
     return downloadUrl;
   }
 
-  Future<void> sighOutUser()async{
+  Future<void> signOutUser()async{
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     await firebaseAuth.signOut();
     _isSignedIn = false;

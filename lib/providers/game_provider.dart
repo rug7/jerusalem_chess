@@ -493,8 +493,8 @@ class GameProvider extends ChangeNotifier{
       );
 
       // Delete the game from availableGames and runningGames
-      await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
-      await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+      // await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+      // await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
 
 
 
@@ -1230,8 +1230,8 @@ class GameProvider extends ChangeNotifier{
         await saveGameToUserHistory(gameId, moves);
 
         // Delete the game from availableGames and runningGames
-        await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
-        await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+        // await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
+        // await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
 
       } else {
         print('Document not found: ${docRef.path}');
@@ -1281,7 +1281,7 @@ class GameProvider extends ChangeNotifier{
         );
       }
     });
-    FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).delete();
+    // FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).delete();
   }
 
   Stream<DocumentSnapshot> get gameMovesStream {
