@@ -18,8 +18,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-
-
   bool rememberLoginDetails = false;
   String profileImage = 'assets/profile_picture.png'; // Initial profile image path
   late ThemeLanguageProvider _themeLanguageProvider;
@@ -71,16 +69,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           } catch (e) {
             print('Error loading translations: $e');
           }
-
-
-
         }
 
-
-
         setState(() {
-          profileImage =
-              finalFileImage!.path; // Update profile image optimistically
+          profileImage = finalFileImage!.path; // Update profile image optimistically
         });
 
         // Update user image
@@ -90,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onSuccess: () {
             if (mounted) {
               authProvider.showSnackBar(context: context,
-                  content: 'Profile image updated successfully.',color: Colors.green);
+                  content: 'Profile image updated successfully.', color: Colors.green);
             }
           },
           onFail: (error) {
@@ -109,11 +101,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       print('Error cropping image: $e');
     }
   }
+
   @override
   void dispose() {
     super.dispose();
   }
-
 
   @override
   void didChangeDependencies() {
@@ -140,25 +132,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors
-        .white;
-    final backgroundColor =
-    _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212);
-    final userModel = context
-        .watch<AuthenticationProvider>()
-        .userModel;
+    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
+    final backgroundColor = _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212);
+    final userModel = context.watch<AuthenticationProvider>().userModel;
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xff4e3c96),
-        title: Text(getTranslation('settings', translations),style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+        title: Text(getTranslation('settings', translations),
+            style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
         actions: [
           // Dark mode toggle button
           IconButton(
-            icon: Icon(
-                _themeLanguageProvider.isLightMode ? Icons.light_mode : Icons
-                    .dark_mode),
+            icon: Icon(_themeLanguageProvider.isLightMode ? Icons.light_mode : Icons.dark_mode),
             color: _themeLanguageProvider.isLightMode ? const Color(0xfff0c230) : const Color(0xfff0f5f7),
             onPressed: _themeLanguageProvider.toggleThemeMode,
           ),
@@ -185,11 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  (Route<dynamic> route) => false,
-            );
+            Navigator.pop(context);
           },
         ),
       ),
@@ -207,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       ClipOval(
                         child: Image.network(
-                          userModel?.image ?? AssetsManager.userIcon,
+                          userModel?.image.isEmpty ?? true ? AssetsManager.userIcon : userModel!.image,
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -218,7 +201,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             );
                           },
                         ),
-
                       ),
                       Positioned(
                         bottom: 0,
@@ -233,7 +215,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               color: backgroundColor,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.camera_alt , color: textColor,),
+                            child: Icon(Icons.camera_alt, color: textColor,),
                           ),
                         ),
                       ),
@@ -243,23 +225,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 8),
                 Text(
                   userModel!.name,
-                  style: TextStyle(fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: textColor),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
           SwitchListTile(
-            title: Text(getTranslation('DarkMode', translations),style:  TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('DarkMode', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             value: !_themeLanguageProvider.isLightMode,
             onChanged: (bool value) {
               _themeLanguageProvider.toggleThemeMode();
             },
           ),
           SwitchListTile(
-            title: Text(getTranslation('Remember Login Details', translations),style:  TextStyle(color:textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('Remember Login Details', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             value: rememberLoginDetails,
             onChanged: (bool value) {
               setState(() {
@@ -269,14 +249,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.help),
-            title: Text(getTranslation('helpSupport', translations),style:  TextStyle(color:textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('helpSupport', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
               // Add help/support functionality
             },
           ),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: Text(getTranslation('signOut', translations),style:  TextStyle(color:textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('signOut', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
               context.read<AuthenticationProvider>()
                   .sighOutUser()
@@ -291,14 +271,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.notifications),
-            title: Text(getTranslation('notifications', translations),style:  TextStyle(color:textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('notifications', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
               // Add notifications settings functionality
             },
           ),
           ListTile(
             leading: const Icon(Icons.security),
-            title: Text(getTranslation('privacySecurity', translations),style:  TextStyle(color:textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),),
+            title: Text(getTranslation('privacySecurity', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
               // Add privacy and security settings functionality
             },
@@ -309,6 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void showProfileImageDialog(String imageUrl) {
+    final defaultImage = AssetImage(AssetsManager.userIcon);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -322,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               height: 400,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(imageUrl),
+                  image: imageUrl.isEmpty ? defaultImage : NetworkImage(imageUrl) as ImageProvider,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -333,72 +314,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-    void showOptionsDialog() async {
-      try {
-        final result = await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Change Profile Picture'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.camera_alt),
-                    title: Text('Take Photo'),
-                    onTap: () {
-                      Navigator.pop(context, 'camera');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.image),
-                    title: Text('Choose from Gallery'),
-                    onTap: () {
-                      Navigator.pop(context, 'gallery');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.delete),
-                    title: Text('Delete Current Photo'),
-                    onTap: () {
-                      Navigator.pop(context, 'delete');
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+  void showOptionsDialog() async {
+    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
+    try {
+      final result = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(getTranslation('Change Profile Picture', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: Text(getTranslation('Take Photo', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+                  onTap: () {
+                    Navigator.pop(context, 'camera');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.image),
+                  title: Text(getTranslation('Choose from Gallery', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+                  onTap: () {
+                    Navigator.pop(context, 'gallery');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete),
+                  title: Text(getTranslation('Delete Current Photo', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+                  onTap: () {
+                    Navigator.pop(context, 'delete');
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
 
-        if (result == 'camera') {
-          selectImage(fromCamera: true);
-        } else if (result == 'gallery') {
-          selectImage(fromCamera: false);
-        } else if (result == 'delete') {
-          deleteCurrentPhoto();
-        }
-      } catch (e) {
-        print('Error showing options dialog: $e');
+      if (result == 'camera') {
+        selectImage(fromCamera: true);
+      } else if (result == 'gallery') {
+        selectImage(fromCamera: false);
+      } else if (result == 'delete') {
+        deleteCurrentPhoto();
       }
+    } catch (e) {
+      print('Error showing options dialog: $e');
     }
+  }
 
   void deleteCurrentPhoto() async {
     try {
       final authProvider = context.read<AuthenticationProvider>();
-      final defaultImage = AssetsManager.userIcon;
+      final defaultImage = AssetsManager.userIcon; // Replace with your default image path
 
-      // Update local state optimistically with a unique query parameter to bust the cache
+      // Update local state optimistically
       setState(() {
-        profileImage = "$defaultImage?updated=${DateTime.now().millisecondsSinceEpoch}";
+        profileImage = defaultImage; // Set to default image path after deletion
         finalFileImage = null;
       });
 
-      // Update Firestore
+      // Update Firestore or backend
       authProvider.updateUserImage(
         uid: authProvider.userModel!.uid,
         fileImage: null, // Pass null to indicate deletion
         onSuccess: () {
-          // Show SnackBar after image is successfully deleted
+          // Show success message if needed
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -406,13 +388,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-          }
-
-          // Update state after deletion with cache-busting parameter
-          if (mounted) {
-            setState(() {
-              profileImage = "$defaultImage?updated=${DateTime.now().millisecondsSinceEpoch}";
-            });
           }
         },
         onFail: (error) {
@@ -427,7 +402,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Rollback state update on failure if necessary
             setState(() {
-              profileImage = "${authProvider.userModel?.image ?? defaultImage}?updated=${DateTime.now().millisecondsSinceEpoch}";
+              profileImage = authProvider.userModel?.image ?? defaultImage;
             });
           }
         },
@@ -436,6 +411,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       print('Error deleting image: $e');
     }
   }
-
-
 }

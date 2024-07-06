@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/main_screens/about_screen.dart';
+import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
+import 'package:flutter_chess_1/main_screens/communication_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
 import 'package:flutter_chess_1/main_screens/settings_screen.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
@@ -7,13 +8,13 @@ import 'package:flutter_chess_1/providers/theme_language_provider.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../providers/authentication_provider.dart';
+import 'news_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -56,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onLanguageChanged() {
     _loadTranslations(); // Reload translations when the language changes
   }
+
   // Function to get greeting based on current time
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -74,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
 
-
     final user = context.watch<AuthenticationProvider>().userModel;
 
     return Scaffold(
@@ -82,14 +83,25 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
-          user?.name != null ? '${_getGreeting()} ${user?.name}' : getTranslation('homeTitle', _translations),
-          style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
-          textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+          user?.name != null
+              ? '${_getGreeting()} ${user?.name}'
+              : getTranslation('homeTitle', _translations),
+          style: const TextStyle(
+              color: Colors.white,
+              fontFamily: 'IBM Plex Sans Arabic',
+              fontWeight: FontWeight.w700),
+          textDirection: _themeLanguageProvider.currentLanguage == 'Arabic'
+              ? TextDirection.rtl
+              : TextDirection.ltr,
         ),
         actions: [
           IconButton(
-            icon: Icon(isLightMode ? Icons.light_mode : Icons.dark_mode,),
-            color: isLightMode ? const Color(0xfff0c230) : const Color(0xfff0f5f7),
+            icon: Icon(
+              isLightMode ? Icons.light_mode : Icons.dark_mode,
+            ),
+            color: isLightMode
+                ? const Color(0xfff0c230)
+                : const Color(0xfff0f5f7),
             onPressed: _themeLanguageProvider.toggleThemeMode,
           ),
           PopupMenuButton<String>(
@@ -137,12 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             buildGameType(
-              label: getTranslation('about', _translations),
-              icon: Icons.info_rounded,
+              label: getTranslation('gameHistory', _translations),
+              icon: Icons.history,
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AboutScreen()),
+                  MaterialPageRoute(builder: (context) => const GameHistoryScreen()),
                 );
               },
             ),
@@ -156,10 +168,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            buildGameType(
+              label: getTranslation('news', _translations), // New "News" option
+              icon: Icons.newspaper,
+              onTap: () {
+               Navigator.push(
+                 context,
+                  MaterialPageRoute(builder: (context) => const NewsScreen()), // Navigate to NewsScreen
+               );
+              },
+            ),
+            buildGameType(
+              label: getTranslation('communication', _translations), // New "Connect" option
+              icon: Icons.message,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CommunicationScreen()), // Navigate to ConnectScreen
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 }
-

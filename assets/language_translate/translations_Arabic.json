@@ -60,14 +60,17 @@
   "settings": "الإعدادات",
   "DarkMode": "الوضع الداكن",
   "Remember Login Details": "تذكر تفاصيل تسجيل الدخول",
+  "Change Profile Picture": "تغيير صورة الملف الشخصي",
+  "Take Photo": "التقاط صورة",
+  "Choose from Gallery": "اختر من المعرض",
+  "Delete Current Photo": "حذف الصورة الحالية",
   "helpSupport": "المساعدة والدعم",
   "signOut": "تسجيل الخروج",
-  "language": "اللغة",
   "notifications": "الإشعارات",
-  "gameHistory": "سجل الألعاب",
   "privacySecurity": "الخصوصية والأمان",
-  "Arabic": "العربية",
-  "English": "الإنجليزية "
+  "gameHistory": "سجل الألعاب",
+  "news": "الأخبار",
+  "communication": "الاتصال"
 }
 
 

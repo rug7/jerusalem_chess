@@ -60,14 +60,17 @@
   "settings": "Settings",
   "DarkMode": "Dark Mode",
   "Remember Login Details": "Remember Login Details",
+  "Change Profile Picture": "Change Profile Picture",
+  "Take Photo": "Take Photo",
+  "Choose from Gallery": "Choose from Gallery",
+  "Delete Current Photo": "Delete Current Photo",
   "helpSupport": "Help & Support",
   "signOut": "Sign Out",
-  "language": "Language",
   "notifications": "Notifications",
-  "gameHistory": "Game History",
   "privacySecurity": "Privacy & Security",
-  "Arabic": "Arabic",
-  "English": "English "
+  "gameHistory": "Game History",
+  "news": "News",
+  "communication": "Communication"
 
 
 

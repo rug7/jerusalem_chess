@@ -8,12 +8,16 @@ class Constants {
   static const String loadingScreen = '/loadingScreen';
 
   static const String settingScreen = '/settingScreen';
-  static const String aboutScreen = '/aboutScreen';
+  static const String gameHistoryScreen = '/gameHistoryScreen';
   static const String colorOptionScreen = '/colorOptionScreen';
   static const String gameTimeScreen = '/gameTimeScreen';
   static const String loginScreen = '/loginScreen';
   static const String signUpScreen = '/signUpScreen';
   static const String searchingScreen = '/searchingScreen';
+  static const String communicationScreen = '/communicationScreen';
+  static const String newsScreen = '/newsScreen';
+
+
 
 
   static const String userInformationScreen = 'userInformationScreen';

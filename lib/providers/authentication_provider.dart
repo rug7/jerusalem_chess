@@ -168,11 +168,14 @@ class AuthenticationProvider extends ChangeNotifier{
   }) async {
     try {
       if (fileImage == null) {
-        // Handle deletion case, set profile image to null or default value in Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
+        // Handle deletion case, set profile image to an empty string in Firestore
+        await firebaseFirestore
+            .collection(Constants.users)
             .doc(uid)
-            .update({'image': null}); // Update 'image' field to null in Firestore
+            .update({'image': ''}); // Update 'image' field to empty string in Firestore
+
+        // Update local userModel in AuthenticationProvider
+        _userModel!.image = ''; // Assuming _userModel is already fetched
       } else {
         String imageUrl = await storeFileImageToStorage(
           reference: '${Constants.userImages}/$uid.png',
@@ -191,10 +194,11 @@ class AuthenticationProvider extends ChangeNotifier{
       onSuccess();
       notifyListeners(); // Notify listeners of the change
 
-    } on FirebaseException catch (e) {
+    } catch (e) {
       onFail(e.toString());
     }
   }
+
 
 
   //store image to storage and return the download url

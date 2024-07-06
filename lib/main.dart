@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/landing_screen.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
 import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
-import 'package:flutter_chess_1/main_screens/about_screen.dart';
+import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
+import 'package:flutter_chess_1/main_screens/communication_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
 import 'package:flutter_chess_1/main_screens/home_screen.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_chess_1/providers/theme_language_provider.dart';
 import 'authentication/loading.dart';
 import 'constants.dart';
 import 'firebase_options.dart';
+import 'main_screens/news_screen.dart';
 
 void main()async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,13 +53,16 @@ class MyApp extends StatelessWidget {
       routes: {
         Constants.homeScreen: (context) => const HomeScreen(),
         Constants.gameScreen: (context) => const GameScreen(),
-        Constants.aboutScreen: (context) => const AboutScreen(),
+        Constants.gameHistoryScreen: (context) => const GameHistoryScreen(),
         Constants.settingScreen: (context) => const HomeScreen(),
         Constants.gameTimeScreen: (context) => const GameTimeScreen(),
         Constants.loginScreen: (context) => const LoginScreen(),
         Constants.signUpScreen: (context) => const SignUpScreen(),
         Constants.landingScreen: (context) => const LandingScreen(),
         Constants.loadingScreen: (context) => const LoadingScreen(),
+        Constants.communicationScreen: (context) => const CommunicationScreen(),
+        Constants.newsScreen: (context) => const NewsScreen(),
+
 
 
 
@@ -81,7 +86,7 @@ class MyApp extends StatelessWidget {
 // import 'authentication/sign_up_screen.dart';
 // import 'firebase_options.dart'; // Assuming you have this file
 // import 'constants.dart';
-// import 'main_screens/about_screen.dart';
+// import 'main_screens/game_history_screen.dart';
 // import 'main_screens/game_screen.dart';
 // import 'main_screens/game_time_screen.dart';
 // import 'main_screens/home_screen.dart'; // Assuming you have this file
