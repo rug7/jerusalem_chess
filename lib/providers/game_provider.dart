@@ -13,6 +13,8 @@ import 'package:square_bishop/square_bishop.dart';
 import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
+
 
 import '../main_screens/home_screen.dart';
 
@@ -51,6 +53,9 @@ class GameProvider extends ChangeNotifier{
   GameDifficulty _gameDifficulty = GameDifficulty.easy;
 
   String _gameId ='';
+  String _creationTime = '';
+
+  String get creationTime => _creationTime;
   String get gameId => _gameId;
 
   Duration _whiteTime = Duration.zero;
@@ -184,6 +189,11 @@ class GameProvider extends ChangeNotifier{
     bool result = game.makeSquaresMove(move);
     notifyListeners();
     return result;
+  }
+  String formatTimestamp(String timestamp) {
+    int timestampMillis = int.parse(timestamp);
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
   //make string move
@@ -635,7 +645,11 @@ class GameProvider extends ChangeNotifier{
   }) async {
     //create a game id
     _gameId = const Uuid().v4();
+    _creationTime = DateTime.now().millisecondsSinceEpoch.toString(); // Set creation time here
+
     notifyListeners();
+    String formattedCreationTime = formatTimestamp(_creationTime);
+
 
     try{
       await firebaseFirestore
@@ -652,12 +666,13 @@ class GameProvider extends ChangeNotifier{
         Constants.gameCreatorRating: userModel.playerRating,
         Constants.isPlaying: false,
         Constants.gameId: gameId,
-        Constants.dateCreated: DateTime.now().microsecondsSinceEpoch.toString(),
+        Constants.dateCreated: _creationTime, // Save the raw timestamp
         Constants.whitesTime: _whiteSavedTime.toString(),
         Constants.blacksTime: _blackSavedTime.toString(),
 
 
       });
+      await updateGamesPlayed(userModel.uid); // Update games played
       onSuccess();
     }on FirebaseException catch(e){
       _isLoading = false;
@@ -685,6 +700,46 @@ class GameProvider extends ChangeNotifier{
   String get userPhoto => _userPhoto;
   int get userRating => _userRating;
 
+  Future<void> updateGamesPlayed(String userId) async {
+    final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
+    await firebaseFirestore.runTransaction((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      if (userSnapshot.exists) {
+        final userData = userSnapshot.data() as Map<String, dynamic>;
+        int gamesPlayed = userData[Constants.gamesPlayed] ?? 0;
+        gamesPlayed += 1;
+        transaction.update(userRef, {Constants.gamesPlayed: gamesPlayed});
+      }
+    });
+  }
+  Future<void> updateWins(String userId) async {
+    final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
+    await firebaseFirestore.runTransaction((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      if (userSnapshot.exists) {
+        final userData = userSnapshot.data() as Map<String, dynamic>;
+        int wins = userData[Constants.wins] ?? 0;
+        wins += 1;
+        transaction.update(userRef, {Constants.wins: wins});
+      }
+    });
+  }
+
+  Future<void> updateLosses(String userId) async {
+    final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
+    await firebaseFirestore.runTransaction((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      if (userSnapshot.exists) {
+        final userData = userSnapshot.data() as Map<String, dynamic>;
+        int losses = userData[Constants.losses] ?? 0;
+        losses += 1;
+        transaction.update(userRef, {Constants.losses: losses});
+      }
+    });
+  }
+
+
+
 
 
   //join game
@@ -708,7 +763,11 @@ class GameProvider extends ChangeNotifier{
       _userRating = userModel.playerRating;
 
       _gameId = game[Constants.gameId];
+      _creationTime = game[Constants.dateCreated];
       notifyListeners();
+      String formattedCreationTime = formatTimestamp(_creationTime);
+
+
 
       if(myGame.exists){
         //delete my created game since we are joining another game
@@ -757,14 +816,15 @@ class GameProvider extends ChangeNotifier{
         Constants.userImage: _userPhoto,
         Constants.userRating: _userRating,
         Constants.isPlaying: true,
-        Constants.dateCreated: DateTime.now().microsecondsSinceEpoch.toString(),
+        Constants.dateCreated: _creationTime,
         Constants.gameScore: '0-0',
       });
 
       //update game settings depending on the data of the game we are joining
       await setGameDataAndSettings(game: game, userModel: userModel);
 
-
+      await updateGamesPlayed(_gameCreatorUid); // Update games played for game creator
+      await updateGamesPlayed(userModel.uid);   // Update games played for joining user
       onSuccess();
     }on FirebaseException catch(e){
       onFail(e.toString());
@@ -959,6 +1019,10 @@ class GameProvider extends ChangeNotifier{
       }
     });
   }
+  void updateMoveList(String move) {
+    moveList.add(move);
+    notifyListeners();
+  }
 
   //convert move string to move format
   Move convertMoveStringToMove({
@@ -991,6 +1055,7 @@ class GameProvider extends ChangeNotifier{
         piece: piece
     );
   }
+
 
   //play move and save to firestore
   Future<void> playMoveAndSaveToFirestore({
@@ -1072,7 +1137,7 @@ class GameProvider extends ChangeNotifier{
         opponentId: opponentId,
         opponentName: opponentName,
         moves: moves,
-        creationTime: creationTime,
+        creationTime: _creationTime,
       );
     }
   }
@@ -1306,6 +1371,13 @@ class GameProvider extends ChangeNotifier{
         await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
           Constants.userRating: newRatings[opponentUid],
         });
+        await updateWins(winnerId);
+        if (winnerId == gameCreatorUid) {
+          await updateLosses(opponentUid);
+        } else {
+          await updateLosses(gameCreatorUid);
+        }
+
 
         onSuccess();
       } catch (e) {
@@ -1368,10 +1440,13 @@ class GameProvider extends ChangeNotifier{
         String opponentName = gameData[Constants.userName];
         String creationTime = gameData[Constants.dateCreated];
 
+        String formattedCreationTime = formatTimestamp(creationTime);
+
+
         await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
           Constants.gameHistory: FieldValue.arrayUnion([{
             'opponentName': opponentName,
-            'creationTime': creationTime,
+            'creationTime': formattedCreationTime ,
             'moves': moves,
           }])
         });
@@ -1379,7 +1454,7 @@ class GameProvider extends ChangeNotifier{
         await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
           Constants.gameHistory: FieldValue.arrayUnion([{
             'opponentName': gameCreatorName,
-            'creationTime': creationTime,
+            'creationTime': formattedCreationTime ,
             'moves': moves,
           }])
         });

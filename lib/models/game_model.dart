@@ -1,5 +1,4 @@
 import 'package:squares/squares.dart';
-
 import '../constants.dart';
 
 class GameModel{

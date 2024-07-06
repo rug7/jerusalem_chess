@@ -15,60 +15,60 @@ import '../constants.dart';
 import '../providers/custom_board_theme.dart';
 import '../providers/custom_piece_set.dart';
 import 'home_screen.dart';
+
 bool isLightMode = true;
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
+
 class _GameScreenState extends State<GameScreen> {
   late Stockfish stockfish;
-  List<String> moveList = []; // List to store 1s
+  List<String> moveList = []; // List to store moves
 
   @override
   void initState() {
     stockfish = Stockfish();
-    final gameProvider =  context.read<GameProvider>();
+    final gameProvider = context.read<GameProvider>();
     gameProvider.resetGame(newGame: false);
     super.initState();
-    if(!gameProvider.vsComputer){
+    if (!gameProvider.vsComputer) {
       gameProvider.listenToGameUpdates();
     }
 
-
-    if(mounted){
+    if (mounted) {
       letOtherPlayerPlayFirst();
     }
 
     stockfish.stdout.listen((event) {
-      if(event.contains(UCICommands.bestMove)){
+      if (event.contains(UCICommands.bestMove)) {
         final bestMove = event.split(' ')[1];
         final newLocation = bestMove.substring(2);
         gameProvider.makeStringMove(bestMove);
         gameProvider.setAiThinking(false);
         gameProvider.setSquaresState().whenComplete(() {
-          if(gameProvider.player == Squares.white){
-            //check if we can play white's timer
-            if(gameProvider.playWhiteTimer){
-              //pause timer for black
+          if (gameProvider.player == Squares.white) {
+            // Check if we can play white's timer
+            if (gameProvider.playWhiteTimer) {
+              // Pause timer for black
               gameProvider.pauseBlackTimer();
               startTimer(
                 isWhiteTimer: true,
-                onNewGame: (){},
+                onNewGame: () {},
               );
 
               gameProvider.setPlayWhiteTimer(value: false);
             }
-          }
-          else{
-
-            if(gameProvider.playBlackTimer){
-              //pause timer for white
+          } else {
+            if (gameProvider.playBlackTimer) {
+              // Pause timer for white
               gameProvider.pauseWhiteTimer();
               startTimer(
                 isWhiteTimer: false,
-                onNewGame: (){},
+                onNewGame: () {},
               );
 
               gameProvider.setPlayBlackTimer(value: false);
@@ -76,16 +76,16 @@ class _GameScreenState extends State<GameScreen> {
           }
         });
         updateMoveList(newLocation);
-
       }
     });
-    super.initState();
   }
+
   @override
-  void dispose(){
+  void dispose() {
     stockfish.dispose();
     super.dispose();
   }
+
   // Function to update move list
   void updateMoveList(String move) {
     setState(() {
@@ -93,72 +93,66 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void letOtherPlayerPlayFirst(){
-    //wait for widget to rebuild
-    WidgetsBinding.instance.addPostFrameCallback((_)async {
+  void letOtherPlayerPlayFirst() {
+    // Wait for widget to rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gameProvider = context.read<GameProvider>();
 
-      if(gameProvider.vsComputer){
+      if (gameProvider.vsComputer) {
         if (gameProvider.state.state == PlayState.theirTurn && !gameProvider.aiThinking) {
           gameProvider.setAiThinking(true);
 
-          //wait until stockfish is ready
+          // Wait until stockfish is ready
           await waitUntilReady();
 
-          //get the current position of the board and send it to stockfish
+          // Get the current position of the board and send it to stockfish
           stockfish.stdin = '${UCICommands.position} ${gameProvider.getPositionFen()}';
 
-          //set stockfish level
+          // Set stockfish level
           stockfish.stdin = '${UCICommands.goMoveTime} ${gameProvider.gameLevel * 1000}';
 
           stockfish.stdout.listen((event) {
-            if(event.contains(UCICommands.bestMove)){
+            if (event.contains(UCICommands.bestMove)) {
               final bestMove = event.split(' ')[1];
               gameProvider.makeStringMove(bestMove);
               gameProvider.setAiThinking(false);
               gameProvider.setSquaresState().whenComplete(() {
-                if(gameProvider.player == Squares.white){
-                  //check if we can play white's timer
-                  if(gameProvider.playWhiteTimer){
-                    //pause timer for black
+                if (gameProvider.player == Squares.white) {
+                  // Check if we can play white's timer
+                  if (gameProvider.playWhiteTimer) {
+                    // Pause timer for black
                     gameProvider.pauseBlackTimer();
                     startTimer(
                       isWhiteTimer: true,
-                      onNewGame: (){},
+                      onNewGame: () {},
                     );
 
                     gameProvider.setPlayWhiteTimer(value: false);
                   }
-                }
-                else{
-
-                  if(gameProvider.playBlackTimer){
-                    //pause timer for white
+                } else {
+                  if (gameProvider.playBlackTimer) {
+                    // Pause timer for white
                     gameProvider.pauseWhiteTimer();
                     startTimer(
                       isWhiteTimer: false,
-                      onNewGame: (){},
+                      onNewGame: () {},
                     );
 
                     gameProvider.setPlayBlackTimer(value: false);
                   }
                 }
               });
-
             }
           });
-
         }
-      }
-      else{
+      } else {
         final userModel = context.read<AuthenticationProvider>().userModel;
-        //listen for firestore changes
+        // Listen for firestore changes
         gameProvider.listenForGameChanges(
-            context: context,
-            userModel: userModel!
+          context: context,
+          userModel: userModel!,
         );
       }
-
     });
   }
 
@@ -167,113 +161,108 @@ class _GameScreenState extends State<GameScreen> {
     bool result = gameProvider.makeSquaresMove(move);
     final newMove = convertMoveFormat(move.toString()).split('-')[1];
     if (result) {
-      gameProvider.setSquaresState().whenComplete(() async{
-        if(gameProvider.player == Squares.white){
-          //check if we are playing vs computer
-          if(gameProvider.vsComputer){
-            //pause timer for white
+      gameProvider.setSquaresState().whenComplete(() async {
+        if (gameProvider.player == Squares.white) {
+          // Check if we are playing vs computer
+          if (gameProvider.vsComputer) {
+            // Pause timer for white
             gameProvider.pauseWhiteTimer();
             startTimer(
               isWhiteTimer: false,
-              onNewGame: (){},
+              onNewGame: () {},
             );
-            //set white bool flag to true so we don't run the code again until true
+            // Set white bool flag to true so we don't run the code again until true
             gameProvider.setPlayWhiteTimer(value: true);
-          }else{
-            //play and save whites move to firestore
+          } else {
+            // Play and save whites move to firestore
             await gameProvider.playMoveAndSaveToFirestore(
               context: context,
               move: move,
               isWhitesMove: true,
             );
           }
-
-        } else{
-          if(gameProvider.vsComputer){
-            //pause timer for black
+        } else {
+          if (gameProvider.vsComputer) {
+            // Pause timer for black
             gameProvider.pauseBlackTimer();
             startTimer(
               isWhiteTimer: true,
-              onNewGame: (){},
+              onNewGame: () {},
             );
-            //set black bool flag to true so we don't run the code again until true
-
+            // Set black bool flag to true so we don't run the code again until true
             gameProvider.setPlayBlackTimer(value: true);
-          }
-          else{
-            //play and save black's move to firestore
+          } else {
+            // Play and save black's move to firestore
             await gameProvider.playMoveAndSaveToFirestore(
               context: context,
               move: move,
               isWhitesMove: false,
             );
           }
-
-
         }
         updateMoveList(newMove);
-
+        print('moves: $moveList');
       });
     }
-    if(gameProvider.vsComputer){
+    if (gameProvider.vsComputer) {
       if (gameProvider.state.state == PlayState.theirTurn && !gameProvider.aiThinking) {
         gameProvider.setAiThinking(true);
 
-        //wait until stockfish is ready
+        // Wait until stockfish is ready
         await waitUntilReady();
 
-        //get the current position of the board and send it to stockfish
+        // Get the current position of the board and send it to stockfish
         stockfish.stdin = '${UCICommands.position} ${gameProvider.getPositionFen()}';
 
-        //set stockfish level
+        // Set stockfish level
         stockfish.stdin = '${UCICommands.goMoveTime} ${gameProvider.gameLevel * 1000}';
       }
     }
 
     await Future.delayed(const Duration(seconds: 1));
-    //check if the game's over
+    // Check if the game's over
     checkGameOverListener();
   }
 
-  Future<void>waitUntilReady()async{
-    while(stockfish.state.value != StockfishState.ready){
+  Future<void> waitUntilReady() async {
+    while (stockfish.state.value != StockfishState.ready) {
       await Future.delayed(const Duration(seconds: 1));
     }
   }
 
-  void checkGameOverListener(){
-    final gameProvider =  context.read<GameProvider>();
+  void checkGameOverListener() {
+    final gameProvider = context.read<GameProvider>();
     gameProvider.gameOverListener(
       context: context,
-      stockfish:stockfish,
-      onNewGame:(){
-        gameProvider.resetGame(newGame: true);},
+      stockfish: stockfish,
+      onNewGame: () {
+        gameProvider.resetGame(newGame: true);
+      },
     );
   }
-
 
   void startTimer({
     required bool isWhiteTimer,
     required Function onNewGame,
-  }){
+  }) {
     final gameProvider = context.read<GameProvider>();
-    if(isWhiteTimer){
-      //start timer for white
+    if (isWhiteTimer) {
+      // Start timer for white
       gameProvider.startWhitesTimer(
-          context: context,
-          stockfish: stockfish,
-          onNewGame: onNewGame
+        context: context,
+        stockfish: stockfish,
+        onNewGame: onNewGame,
       );
-    }
-    else{
-      //start timer for black
+    } else {
+      // Start timer for black
       gameProvider.startBlacksTimer(
-          context: context,
-          stockfish: stockfish,
-          onNewGame: onNewGame
+        context: context,
+        stockfish: stockfish,
+        onNewGame: onNewGame,
       );
     }
   }
+
   CustomPieceSet getPieceSet(bool isLightMode) {
     String folder = 'assets/images/';
     return CustomPieceSet.fromSvgAssets(
@@ -315,13 +304,13 @@ class _GameScreenState extends State<GameScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          // leading: IconButton(icon: const Icon(Icons.arrow_back,color: Colors.white,),
-          //   onPressed: () {
-          //     //TODO show diaglog if sure
-          //     Navigator.pop(context);
-          //
-          //   },
-          // ),
+          leading: IconButton(icon: const Icon(Icons.arrow_back,color: Colors.white,),
+            onPressed: () {
+              //TODO show diaglog if sure
+              //Navigator.pop(context);
+
+            },
+          ),
             backgroundColor: const Color(0xFF663d99),
 
             title: Text('شطرنج القدس',style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic',fontWeight: FontWeight.w700),),
@@ -400,48 +389,39 @@ class _GameScreenState extends State<GameScreen> {
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
-            if (gameProvider.showAnalysisBoard)
-              Container(
-                height: 200, // Fixed height for the container
-                color: Colors.grey[850], // Dark background for the moves list
-                child: ListView.separated(
-                  itemCount: (moveList.length + 1) ~/ 2,
-                  // Half the number of moves for two columns
-                  separatorBuilder: (_, __) => Divider(color: Colors.grey[700]),
-                  // Separator for readability
-                  itemBuilder: (context, index) {
-                    String moveWhite = gameProvider.moveList.length > index * 2
-                        ? gameProvider.moveList[index * 2]
-                        : "";
-                    String moveBlack = gameProvider.moveList.length > index * 2 + 1
-                        ? gameProvider.moveList[index * 2 + 1]
-                        : "";
+                  if (gameProvider.showAnalysisBoard)
+                    Container(
+                      height: 200, // Fixed height for the container
+                      color: Colors.white, // Dark background for the moves list
+                      child: ListView.builder(
+                        itemCount: (moveList.length + 1) ~/ 2,
+                        itemBuilder: (context, index) {
+                          String moveWhite = moveList.length > index * 2 ? moveList[index * 2] : "";
+                          String moveBlack = moveList.length > index * 2 + 1 ? moveList[index * 2 + 1] : "";
 
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child:
-                          Text(
-                            "${index + 1}. $moveWhite",
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 16),
-                            textAlign: TextAlign.left,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            moveBlack,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 16),
-                            textAlign: TextAlign.left,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "${index + 1}. $moveWhite",
+                                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  moveBlack,
+                                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+
 
 
 
