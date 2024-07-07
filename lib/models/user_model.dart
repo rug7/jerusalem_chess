@@ -10,6 +10,7 @@ class UserModel{
   int gamesPlayed;
   int wins;
   int losses;
+  String phoneNumber;
   List<Map<String, dynamic>> gameHistory;
 
   UserModel({
@@ -22,7 +23,8 @@ class UserModel{
     this.gamesPlayed = 0,
     this.wins = 0,
     this.losses = 0,
-    this.gameHistory = const [], // Initialize game history as empty list
+    this.gameHistory = const [],
+    required this.phoneNumber // Initialize game history as empty list
 
   });
 
@@ -37,6 +39,7 @@ class UserModel{
       Constants.gamesPlayed: gamesPlayed,
       Constants.wins: wins,
       Constants.losses: losses,
+      Constants.phoneNumber:phoneNumber,
       Constants.gameHistory: gameHistory, // Include game history in the map
 
     };
@@ -52,6 +55,7 @@ class UserModel{
         image: data[Constants.image] ?? '',
         createdAt: data[Constants.createdAt] ?? '',
         playerRating: data[Constants.playerRating] ?? 0,
+      phoneNumber: data[Constants.phoneNumber] ?? '',
       gamesPlayed: data[Constants.gamesPlayed] ?? 0,
       wins: data[Constants.wins] ?? 0,
       losses: data[Constants.losses] ?? 0,

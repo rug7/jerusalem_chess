@@ -18,7 +18,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool rememberLoginDetails = false;
+  bool rememberLoginDetails = true;
   String profileImage = 'assets/profile_picture.png'; // Initial profile image path
   late ThemeLanguageProvider _themeLanguageProvider;
   Map<String, dynamic> translations = {};
@@ -254,21 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Add help/support functionality
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text(getTranslation('signOut', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
-            onTap: () {
-              context.read<AuthenticationProvider>()
-                  .sighOutUser()
-                  .whenComplete(() {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      (Route<dynamic> route) => false,
-                );
-              });
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.notifications),
             title: Text(getTranslation('notifications', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
@@ -280,11 +266,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.security),
             title: Text(getTranslation('privacySecurity', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
-              // Add privacy and security settings functionality
+              showPrivacySecurityDialog();
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: Text(getTranslation('signOut', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+            onTap: () {
+              context.read<AuthenticationProvider>()
+                  .signOutUser()
+                  .whenComplete(() {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (Route<dynamic> route) => false,
+                );
+              });
             },
           ),
         ],
       ),
+
+    );
+  }
+  void showPrivacySecurityDialog() {
+    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(getTranslation('Privacy & Security', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock),
+                title: Text('Change Password', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+                onTap: () {
+                  // Implement password change functionality
+                  Navigator.pop(context); // Close the dialog after action
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.security),
+                title: Text('Two-Factor Authentication', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+                onTap: () {
+                  // Implement two-factor authentication settings
+                  Navigator.pop(context); // Close the dialog after action
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

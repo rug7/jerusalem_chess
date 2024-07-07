@@ -70,7 +70,9 @@
   "privacySecurity": "الخصوصية والأمان",
   "gameHistory": "سجل الألعاب",
   "news": "الأخبار",
-  "communication": "الاتصال"
+  "communication": "الاتصال",
+  "enteryourphonenumber": "أدخل رقم هاتفك",
+  "invalidPhoneNumber": "يرجى إدخال رقم هاتف صالح"
 }
 
 

@@ -31,6 +31,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late String password;
   late String confirmPassword;
   bool obscureText = true;
+  late String phoneNumber;
+  String _selectedPrefix = '050'; // Default initial value
+
+
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // final TextEditingController nameController = TextEditingController();
@@ -261,6 +265,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             image: '',
             createdAt: '',
             playerRating: 700,
+            phoneNumber: phoneNumber
           );
 
           authProvider.saveUserDataToFireStore(
@@ -328,6 +333,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       authProvider.showSnackBar(context: context, content: getTranslation('fillFields',_translations),color: Colors.red);
     }
 
+  }
+  bool isNumeric(String input) {
+    final numericRegExp = RegExp(r'^[0-9]+$');
+    return numericRegExp.hasMatch(input);
   }
 
   void navigateToHome() {
@@ -552,7 +561,63 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       },
                     ),
                   ),
+
                   const SizedBox(height: 20,),
+            Directionality(
+              textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+              child: Row(
+                children: [
+                  DropdownButton<String>(
+                    value: _selectedPrefix,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedPrefix = newValue!;
+                        phoneNumber = newValue; // Reset the phone number with the new prefix
+                      });
+                    },
+                    items: <String>['050', '052', '053', '054', '058']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      textInputAction: TextInputAction.next,
+                      maxLength: 7, // Adjust as per your requirements
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      textAlign: textAlignCheck,
+                      // Remove textDirection: textDirectionCheck, as it's handled by Directionality
+                      decoration: textFormDecoration.copyWith(
+                        counterText: '',
+                        labelText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                        hintText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                      ),
+                      validator: (value) {
+                        // Add validation logic as needed
+                        if (value == null || value.isEmpty || value.length < 7||!isNumeric(value)) {
+                          return getTranslation('invalidPhoneNumber', _translations); // Translate this as needed
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          phoneNumber = _selectedPrefix + value;
+
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+
+            const SizedBox(height: 20,),
+
                   Directionality(
                     textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
                     child: TextFormField(

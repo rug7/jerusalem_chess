@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late ThemeLanguageProvider _themeLanguageProvider;
   late String email;
   late String password;
+  late String phoneNumber;
   bool obscureText = true;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -363,11 +364,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 55.0,
                           width: 55.0,
                           onTap: (){
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                  (Route<dynamic> route) => false,
-                            );
+                            // Navigator.pushAndRemoveUntil(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+                            //       (Route<dynamic> route) => false,
+                            // );
                           }
                       ),
                       SocialButtons(
@@ -376,11 +377,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 55.0,
                           width: 55.0,
                           onTap: (){
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                  (Route<dynamic> route) => false,
-                            );
+                            // Navigator.pushAndRemoveUntil(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+                            //       (Route<dynamic> route) => false,
+                            // );
                           }
                       ),
                       SocialButtons(
@@ -389,11 +390,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 55.0,
                           width: 55.0,
                           onTap: (){
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                  (Route<dynamic> route) => false,
-                            );
+                            // Navigator.pushAndRemoveUntil(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+                            //       (Route<dynamic> route) => false,
+                            // );
                           }
                       ),
                     ],
@@ -414,6 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
 }
 
 

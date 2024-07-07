@@ -70,7 +70,9 @@
   "privacySecurity": "Privacy & Security",
   "gameHistory": "Game History",
   "news": "News",
-  "communication": "Communication"
+  "communication": "Communication",
+  "enteryourphonenumber": "Enter Your Phone Number",
+  "invalidPhoneNumber": "Invalid Phone Number"
 
 
 
