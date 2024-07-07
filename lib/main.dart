@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/landing_screen.dart';
@@ -17,12 +19,23 @@ import 'authentication/loading.dart';
 import 'constants.dart';
 import 'firebase_options.dart';
 import 'main_screens/news_screen.dart';
+import 'models/user_model.dart';
 
 void main()async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Retrieve user model from Firebase Auth or Firestore
+  // User? user = FirebaseAuth.instance.currentUser;
+  // UserModel? userModel;
+  //
+  // if (user != null) {
+  //   final DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+  //   if (userDoc.exists) {
+  //     userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>); // Implement fromMap in UserModel
+  //   }
+  // }
   runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => GameProvider()),

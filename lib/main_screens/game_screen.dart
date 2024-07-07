@@ -47,6 +47,7 @@ class _GameScreenState extends State<GameScreen> {
       if (event.contains(UCICommands.bestMove)) {
         final bestMove = event.split(' ')[1];
         final newLocation = bestMove.substring(2);
+        print("best move 1:$bestMove");
         gameProvider.makeStringMove(bestMove);
         gameProvider.setAiThinking(false);
         gameProvider.setSquaresState().whenComplete(() {
@@ -157,8 +158,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onMove(Move move) async {
+    print("move before convert 1 : $move");
+
     final gameProvider = context.read<GameProvider>();
     bool result = gameProvider.makeSquaresMove(move);
+    print("move before convert2: $move");
     final newMove = convertMoveFormat(move.toString()).split('-')[1];
     if (result) {
       gameProvider.setSquaresState().whenComplete(() async {
@@ -180,6 +184,7 @@ class _GameScreenState extends State<GameScreen> {
               move: move,
               isWhitesMove: true,
             );
+            updateMoveList(newMove);
           }
         } else {
           if (gameProvider.vsComputer) {
@@ -198,9 +203,9 @@ class _GameScreenState extends State<GameScreen> {
               move: move,
               isWhitesMove: false,
             );
+            updateMoveList(newMove);
           }
         }
-        updateMoveList(newMove);
         print('moves: $moveList');
       });
     }
@@ -223,6 +228,8 @@ class _GameScreenState extends State<GameScreen> {
     // Check if the game's over
     checkGameOverListener();
   }
+
+
 
   Future<void> waitUntilReady() async {
     while (stockfish.state.value != StockfishState.ready) {
@@ -306,9 +313,9 @@ class _GameScreenState extends State<GameScreen> {
         appBar: AppBar(
           leading: IconButton(icon: const Icon(Icons.arrow_back,color: Colors.white,),
             onPressed: () {
-              //TODO show diaglog if sure
-              //Navigator.pop(context);
-
+            //   //TODO show diaglog if sure
+            //   Navigator.pop(context);
+            //
             },
           ),
             backgroundColor: const Color(0xFF663d99),

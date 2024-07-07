@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../helper/helper_methods.dart';
+import '../providers/game_provider.dart';
 import '../providers/theme_language_provider.dart';
+import '../providers/authentication_provider.dart';
+import '../helper/helper_methods.dart';
 
 class GameHistoryScreen extends StatefulWidget {
   const GameHistoryScreen({super.key});
@@ -14,8 +17,8 @@ class GameHistoryScreen extends StatefulWidget {
 class _GameHistoryScreenState extends State<GameHistoryScreen> {
   late ThemeLanguageProvider _themeLanguageProvider;
   Map<String, dynamic> translations = {};
-
-
+  List<Map<String, dynamic>> gameHistory = [];
+  bool isLoading = true;
 
   @override
   void didChangeDependencies() {
@@ -28,6 +31,9 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
         });
       }
     });
+
+    // Fetch game history from Firestore
+    fetchGameHistory();
   }
 
   void reloadTranslations(String language) {
@@ -38,6 +44,25 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
         });
       }
     });
+  }
+
+  Future<void> fetchGameHistory() async {
+    final authProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+    final userModel = authProvider.userModel;
+
+    if (userModel != null) {
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userModel.uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -65,8 +90,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
               _themeLanguageProvider.changeLanguage(selectedLanguage);
               reloadTranslations(selectedLanguage);
             },
-            itemBuilder: (BuildContext context) =>
-            [
+            itemBuilder: (BuildContext context) => [
               const PopupMenuItem<String>(
                 value: 'Arabic',
                 child: Text('العربية'),
@@ -79,13 +103,65 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           ),
         ],
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
-      body: ListView(),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+            border: TableBorder.all(color: const Color(0xff4e3c96),width: 3),
+            columnWidths: const {
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(4),
+            },
+            children: [
+              TableRow(
+                children: [
+                  TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Opponent', style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 22)),
+                    ),
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Moves', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 22)),
+                    ),
+                  ),
+                ],
+              ),
+              ...gameHistory.map((game) {
+                final opponentName = game['opponentName'] ?? 'Unknown';
+                final moves = game['moves']?.join(', ') ?? 'No moves';
+
+                return TableRow(
+                  children: [
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(opponentName, style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 18)),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(moves, style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 18)),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
