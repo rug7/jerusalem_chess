@@ -328,7 +328,7 @@ class _GameScreenState extends State<GameScreen> {
               }
             },
           ),
-            backgroundColor: const Color(0xFF663d99),
+            backgroundColor: const Color(0xff4e3c96),
 
             title: Text('شطرنج القدس',style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic',fontWeight: FontWeight.w700),),
 

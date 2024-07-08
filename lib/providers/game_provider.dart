@@ -37,10 +37,11 @@ class GameProvider extends ChangeNotifier{
   }
 
   void showDialogIfValid(BuildContext context, Widget dialog) {
-    if (context != null && context.mounted) {
+    if (context.mounted) {
       showDialog(context: context, builder: (_) => dialog);
     }
   }
+
 
 
   late bishop.Game _game = bishop.Game(variant: bishop.Variant.standard());
@@ -389,14 +390,24 @@ class GameProvider extends ChangeNotifier{
         notifyListeners();
 
         //show game over dialog
-        if(context.mounted){
-          gameOverDialog(
-              context: context,
-              stockfish: stockfish,
-              timeOut: true,
-              whiteWon: true,
-              onNewGame: onNewGame);
+        if (context.mounted) {
+          showDialogIfValid(
+            context,
+            AlertDialog(
+              title: const Text('Game Over'),
+              content: const Text('The game is over.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
         }
+
       }
     });
   }
@@ -1187,6 +1198,7 @@ class GameProvider extends ChangeNotifier{
             Constants.isWhitesTurn: false,
             Constants.playState: PlayState.theirTurn.name.toString(),
           });
+          print("thier turn ${PlayState.theirTurn.name.toString()}");
 
           // Pause white's timer and start black's timer
           pauseWhiteTimer();
@@ -1209,6 +1221,8 @@ class GameProvider extends ChangeNotifier{
             Constants.isWhitesTurn: true,
             Constants.playState: PlayState.ourTurn.name.toString(),
           });
+          print("thier turn ${PlayState.ourTurn.name.toString()}");
+
 
           // Pause black's timer and start white's timer
           pauseBlackTimer();
