@@ -65,6 +65,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;

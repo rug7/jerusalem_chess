@@ -231,6 +231,71 @@ class AuthenticationProvider extends ChangeNotifier{
     User? user = firebaseAuth.currentUser;
     return user != null;
   }
+  Future<bool> checkPhoneNumberMatch(String enteredPhoneNumber) async {
+    try {
+      User? currentUser = firebaseAuth.currentUser;
+      if (currentUser == null) {
+        print('User not authenticated');
+        return false;
+      }
+
+      DocumentSnapshot snapshot =
+      await firebaseFirestore.collection('users').doc(currentUser.uid).get();
+      if (!snapshot.exists) {
+        print('User document does not exist in Firestore');
+        return false;
+      }
+
+      String? phoneNumber = snapshot.get('phoneNumber'); // Adjust 'phoneNumber' according to your Firestore field name
+      if (phoneNumber == null) {
+        print('Phone number not found in user document');
+        return false;
+      }
+
+      return phoneNumber == enteredPhoneNumber;
+    } catch (e) {
+      print('Error checking phone number match: $e');
+      return false;
+    }
+  }
+  Future<void> signInWithPhoneNumber({
+    required String phoneNumber,
+    required void Function(PhoneAuthCredential) verificationCompleted,
+    required void Function(FirebaseAuthException) verificationFailed,
+    required void Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: verificationCompleted,
+        verificationFailed: (FirebaseAuthException authException) {
+          _isLoading = false; // Update loading state on error
+          notifyListeners();
+          verificationFailed(authException);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          // Handle code sent internally (optional)
+          // You can perform any logic here if needed
+          print('Verification code sent to $phoneNumber');
+        },
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+        timeout: Duration(seconds: 60),
+      );
+    } catch (e) {
+      _isLoading = false; // Update loading state on error
+      notifyListeners();
+      print("Error signing in with phone number: $e");
+
+      if (e is FirebaseAuthException) {
+        verificationFailed(e);
+      } else {
+        verificationFailed(FirebaseAuthException(code: 'unknown', message: e.toString()));
+      }
+    }
+  }
 
 
 

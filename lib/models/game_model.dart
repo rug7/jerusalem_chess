@@ -4,7 +4,9 @@ import '../constants.dart';
 class GameModel{
   String gameId;
   String gameCreatorUid;
+  String gameCreatorName;
   String userId;
+  String userName;
   String positionFen;
   String winnerId;
   String whitesTime;
@@ -13,6 +15,7 @@ class GameModel{
   String blacksCurrentMove;
   String boardState;
   String playState;
+  String dateCreated;
   bool isWhitesTurn;
   bool isGameOver;
   int squareState;
@@ -21,7 +24,9 @@ class GameModel{
   GameModel({
    required this.gameId,
     required this.gameCreatorUid,
+    required this.gameCreatorName,
     required this.userId,
+    required this.userName,
     required this.positionFen,
     required this.winnerId,
     required this.whitesTime,
@@ -30,6 +35,7 @@ class GameModel{
     required this.blacksCurrentMove,
     required this.boardState,
     required this.playState,
+    required this.dateCreated,
     required this.isWhitesTurn,
     required this.isGameOver,
     required this.squareState,
@@ -40,7 +46,9 @@ class GameModel{
     return{
       Constants.gameId : gameId,
       Constants.gameCreatorUid : gameCreatorUid,
+      Constants.gameCreatorName : gameCreatorName,
       Constants.userId : userId,
+      Constants.userName : userName,
       Constants.positionFen : positionFen,
       Constants.winnerId : winnerId,
       Constants.whitesTime : whitesTime,
@@ -49,6 +57,7 @@ class GameModel{
       Constants.blacksCurrentMove : blacksCurrentMove,
       Constants.boardState : boardState,
       Constants.playState : playState,
+      Constants.dateCreated : dateCreated,
       Constants.isWhitesTurn : isWhitesTurn,
       Constants.isGameOver : isGameOver,
       Constants.squareState : squareState,
@@ -61,7 +70,9 @@ class GameModel{
     return GameModel(
         gameId: map[Constants.gameId] ?? '',
         gameCreatorUid: map[Constants.gameCreatorUid] ?? '',
+        gameCreatorName: map[Constants.gameCreatorName] ?? '',
         userId: map[Constants.userId] ?? '',
+        userName: map[Constants.userName] ?? '',
         positionFen: map[Constants.positionFen] ?? '',
         winnerId: map[Constants.winnerId] ?? '',
         whitesTime: map[Constants.whitesTime] ?? '',
@@ -70,6 +81,7 @@ class GameModel{
         blacksCurrentMove: map[Constants.blacksCurrentMove] ?? '',
         boardState: map[Constants.boardState] ?? '',
         playState: map[Constants.playState] ?? '',
+        dateCreated: map[Constants.dateCreated] ?? '',
         isWhitesTurn: map[Constants.isWhitesTurn] ?? false,
         isGameOver: map[Constants.isGameOver] ?? false,
         squareState: map[Constants.squareState] ?? 0,

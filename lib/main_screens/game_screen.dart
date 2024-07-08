@@ -86,12 +86,20 @@ class _GameScreenState extends State<GameScreen> {
     stockfish.dispose();
     super.dispose();
   }
+  bool isValidMove(String move) {
+    // Ensure the move matches the chess notation format like "e2-e4"
+    final moveRegExp = RegExp(r'^[a-h][1-8]-[a-h][1-8]$');
+    return moveRegExp.hasMatch(move);
+  }
 
   // Function to update move list
   void updateMoveList(String move) {
-    setState(() {
-      moveList.add(move);
-    });
+    // Add the current move to the moves list
+    if (isValidMove(move)) {
+      setState(() {
+        moveList.add(move);
+      });
+    }
   }
 
   void letOtherPlayerPlayFirst() {
@@ -312,10 +320,12 @@ class _GameScreenState extends State<GameScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(icon: const Icon(Icons.arrow_back,color: Colors.white,),
-            onPressed: () {
-            //   //TODO show diaglog if sure
-            //   Navigator.pop(context);
-            //
+            onPressed: () async {
+              bool? leave = await _showExitConfirmationDialog(context);
+              if (leave != null && leave) {
+                stockfish.stdin = UCICommands.stop;
+                Navigator.of(context).pop(true);
+              }
             },
           ),
             backgroundColor: const Color(0xFF663d99),

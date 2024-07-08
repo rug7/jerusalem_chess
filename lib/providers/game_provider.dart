@@ -28,11 +28,72 @@ class GameProvider extends ChangeNotifier{
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 
   void toggleAnalysisBoard() {
-    showAnalysisBoard = !showAnalysisBoard;
-    notifyListeners();
+    if (moveList.every(isValidMove) && !showAnalysisBoard) {
+      showAnalysisBoard = true;
+      notifyListeners();
+    } else {
+      print("Invalid moves present in move list. Not toggling analysis board.");
+    }
   }
+
+  void showDialogIfValid(BuildContext context, Widget dialog) {
+    if (context != null && context.mounted) {
+      showDialog(context: context, builder: (_) => dialog);
+    }
+  }
+
+
   late bishop.Game _game = bishop.Game(variant: bishop.Variant.standard());
   late SquaresState _state = SquaresState.initial(0);
+
+  // late bishop.Game _analysisGame;
+  // int _currentMoveIndex = 0;
+  // List<String> _moves = [];
+  //
+  // // Method to load game history into the Game instance
+  // void loadGameHistory(List<String> moves) {
+  //   _analysisGame = bishop.Game(variant: bishop.Variant.standard());
+  //   _moves = moves;
+  //   _currentMoveIndex = 0;
+  //   for (String move in moves) {
+  //     _analysisGame.makeMoveString(move);
+  //   }
+  //   notifyListeners();
+  // }
+  //
+  // // Method to go to the next move
+  // void nextMove() {
+  //   if (_currentMoveIndex < _moves.length - 1) {
+  //     _currentMoveIndex++;
+  //     _analysisGame.makeMoveString(_moves[_currentMoveIndex]);
+  //     notifyListeners();
+  //   }
+  // }
+  //
+  // // Method to go to the previous move
+  // void previousMove() {
+  //   if (_currentMoveIndex > 0) {
+  //     _currentMoveIndex--;
+  //     _analysisGame = bishop.Game(variant: bishop.Variant.standard());
+  //     for (int i = 0; i < _currentMoveIndex; i++) {
+  //       _analysisGame.makeMoveString(_moves[i]);
+  //     }
+  //     notifyListeners();
+  //   }
+  // }
+  //
+  // // Method to get the state of the analysis game
+  // bishop.BishopState get analysisGameState => _analysisGame.state;
+  //
+  // // Method to get the board state of the analysis game
+  // List<int> get analysisBoard => _analysisGame.board;
+  //
+  // // Method to get the piece at a specific square in the analysis game
+  // bishop.Square getPieceAt(int square) => _analysisGame.board[square];
+  //
+
+
+
 
   bool _aiThinking = false;
   bool _flipBoard = false;
@@ -55,7 +116,6 @@ class GameProvider extends ChangeNotifier{
   String _gameId ='';
   String _creationTime = '';
 
-  String get creationTime => _creationTime;
   String get gameId => _gameId;
 
   Duration _whiteTime = Duration.zero;
@@ -95,6 +155,16 @@ class GameProvider extends ChangeNotifier{
   //get method
   bool get vsComputer => _vsComputer;
   bool get isLoading => _isLoading;
+
+
+  void initializeCreationTime() {
+    if (_creationTime.isEmpty) {
+      _creationTime = DateTime.now().toIso8601String();
+    }
+  }
+
+  String get creationTime => _creationTime;
+
 
 
   //set play White's Timer
@@ -191,10 +261,15 @@ class GameProvider extends ChangeNotifier{
     return result;
   }
   String formatTimestamp(String timestamp) {
-    int timestampMillis = int.parse(timestamp);
-    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+    try {
+      DateTime dateTime = DateTime.parse(timestamp);
+      return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+    } catch (e) {
+      print("Error formatting timestamp: $e");
+      return timestamp;
+    }
   }
+
 
   //make string move
   bool makeStringMove(String bestMove){
@@ -477,10 +552,8 @@ class GameProvider extends ChangeNotifier{
 
     // Save game to user history before deletion
     if(!vsComputer){
-      print("_state.moves ${_state.moves}");
-      List<String> moves = _state.moves.map((move) => move.toString()).toList();
-      print("test moves : $moves");
-      await saveGameToUserHistory(gameId, moves);
+      // List<String> moves = _state.moves.map((move) => move.toString()).toList();
+      // await saveGameToUserHistory(gameId, moves);
 
       // Update ratings
       String winnerId = whiteWon ? gameCreatorUid : userId;
@@ -648,7 +721,7 @@ class GameProvider extends ChangeNotifier{
   }) async {
     //create a game id
     _gameId = const Uuid().v4();
-    _creationTime = DateTime.now().millisecondsSinceEpoch.toString(); // Set creation time here
+    initializeCreationTime();
 
     notifyListeners();
     String formattedCreationTime = formatTimestamp(_creationTime);
@@ -781,7 +854,9 @@ class GameProvider extends ChangeNotifier{
       final gameModel = GameModel(
         gameId: _gameId,
         gameCreatorUid: _gameCreatorUid,
+        gameCreatorName: _gameCreatorName,
         userId: _userId,
+        userName: _userName,
         positionFen: getPositionFen(),
         winnerId: '',
         whitesTime: game[Constants.whitesTime],
@@ -790,6 +865,7 @@ class GameProvider extends ChangeNotifier{
         blacksCurrentMove: '',
         boardState: state.board.flipped().toString(),
         playState: PlayState.ourTurn.name.toString(),
+        dateCreated: formattedCreationTime,
         isWhitesTurn: true,
         isGameOver: false,
         squareState: state.player,
@@ -970,6 +1046,7 @@ class GameProvider extends ChangeNotifier{
             //check if white has played his move
             if(game[Constants.whitesCurrentMove] !=whitesMove){
               //update the whites UI
+              print("white move ${game[Constants.whitesCurrentMove]}");
 
               Move convertedMove = convertMoveStringToMove(
                   moveString: game[Constants.whitesCurrentMove]
@@ -1035,6 +1112,7 @@ class GameProvider extends ChangeNotifier{
   Move convertMoveStringToMove({
     required String moveString,
   }) {
+    print("move String :    $moveString");
     //Split the move string into it's components
     List<String> parts = moveString.split('-');
 
@@ -1071,11 +1149,7 @@ class GameProvider extends ChangeNotifier{
     required bool isWhitesMove,
   }) async {
     if (!_vsComputer) {
-      // Original code to save move to Firestore...
-      String currentUserId = isWhitesMove ? gameCreatorUid : userId;
-      String opponentId = isWhitesMove ? userId : gameCreatorUid;
-      String opponentName = isWhitesMove ? userName : gameCreatorName;
-      String creationTime = DateTime.now().millisecondsSinceEpoch.toString();
+      String formattedCreationTime = formatTimestamp(_creationTime);
 
       final gameSnapshot = await firebaseFirestore
           .collection(Constants.runningGames)
@@ -1087,87 +1161,98 @@ class GameProvider extends ChangeNotifier{
       if (gameSnapshot.exists) {
         final gameData = gameSnapshot.data() as Map<String, dynamic>;
         moves = (gameData[Constants.moves] as List<dynamic>).map((move) => move.toString()).toList();
+
+        String gameCreatorUid = gameData[Constants.gameCreatorUid];
+        String opponentUid = gameData[Constants.userId];
+        String gameCreatorName = gameData[Constants.gameCreatorName];
+        String opponentName = gameData[Constants.userName];
+
+        // Add the current move to the moves list
+        String convertedMove = convertMoveFormatProvider(move.toString());
+        if (isValidMove(convertedMove)) {
+          moves.add(convertedMove);
+        }
+
+        // Check if it's white's move
+        if (isWhitesMove) {
+          await firebaseFirestore
+              .collection(Constants.runningGames)
+              .doc(gameId)
+              .collection(Constants.game)
+              .doc(gameId)
+              .update({
+            Constants.positionFen: getPositionFen(),
+            Constants.whitesCurrentMove: move.toString(),
+            Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+            Constants.isWhitesTurn: false,
+            Constants.playState: PlayState.theirTurn.name.toString(),
+          });
+
+          // Pause white's timer and start black's timer
+          pauseWhiteTimer();
+          Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+            startBlacksTimer(
+              context: context,
+              onNewGame: () {},
+            );
+          });
+        } else {
+          await firebaseFirestore
+              .collection(Constants.runningGames)
+              .doc(gameId)
+              .collection(Constants.game)
+              .doc(gameId)
+              .update({
+            Constants.positionFen: getPositionFen(),
+            Constants.blacksCurrentMove: move.toString(),
+            Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+            Constants.isWhitesTurn: true,
+            Constants.playState: PlayState.ourTurn.name.toString(),
+          });
+
+          // Pause black's timer and start white's timer
+          pauseBlackTimer();
+          Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+            startWhitesTimer(
+              context: context,
+              onNewGame: () {},
+            );
+          });
+        }
+        await saveMoveToUserHistory(
+          gameId: gameId,
+          userId: gameCreatorUid,
+          userName: gameCreatorName,
+          opponentId: opponentUid,
+          opponentName: opponentName,
+          moves: moves,
+          creationTime: formattedCreationTime,
+        );
       }
-
-      // Add the current move to the moves list
-      // Add the current move to the moves list
-      String convertedMove = convertMoveFormatProvider(move.toString());
-      if (isValidMove(convertedMove)) {
-        moves.add(convertedMove);
-      }
-
-      // Check if it's white's move
-      if (isWhitesMove) {
-        await firebaseFirestore
-            .collection(Constants.runningGames)
-            .doc(gameId)
-            .collection(Constants.game)
-            .doc(gameId)
-            .update({
-          Constants.positionFen: getPositionFen(),
-          Constants.whitesCurrentMove: move.toString(),
-          Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
-          Constants.isWhitesTurn: false,
-          Constants.playState: PlayState.theirTurn.name.toString(),
-        });
-
-        // Pause white's timer and start black's timer
-        pauseWhiteTimer();
-        Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
-          startBlacksTimer(
-            context: context,
-            onNewGame: () {},
-          );
-        });
-      } else {
-        await firebaseFirestore
-            .collection(Constants.runningGames)
-            .doc(gameId)
-            .collection(Constants.game)
-            .doc(gameId)
-            .update({
-          Constants.positionFen: getPositionFen(),
-          Constants.blacksCurrentMove: move.toString(),
-          Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
-          Constants.isWhitesTurn: true,
-          Constants.playState: PlayState.ourTurn.name.toString(),
-        });
-
-        // Pause black's timer and start white's timer
-        pauseBlackTimer();
-        Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
-          startWhitesTimer(
-            context: context,
-            onNewGame: () {},
-          );
-        });
-      }
-      await saveMoveToUserHistory(
-        gameId: gameId,
-        userId: currentUserId,
-        opponentId: opponentId,
-        opponentName: opponentName,
-        moves: moves,
-        creationTime: _creationTime,
-      );
     }
   }
+
   bool isValidMove(String move) {
     // Ensure the move matches the chess notation format like "e2-e4"
     final moveRegExp = RegExp(r'^[a-h][1-8]-[a-h][1-8]$');
     return moveRegExp.hasMatch(move);
   }
 
-
+//TODO MAKE A MIX BETWEEN THE TWO SAVING TO HISTORY METHODS
   Future<void> saveMoveToUserHistory({
     required String gameId,
     required String userId,
+    required String userName,
     required String opponentId,
     required String opponentName,
     required List<String> moves,
     required String creationTime,
   }) async {
     try {
+      if (gameId.isEmpty) {
+        print('Game ID is empty');
+        return;
+      }
       final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
       final opponentRef = firebaseFirestore.collection(Constants.users).doc(opponentId);
 
@@ -1213,7 +1298,7 @@ class GameProvider extends ChangeNotifier{
           }
           if (!opponentGameFound) {
             opponentGameHistory.add({
-              'opponentName': opponentName,//TODO name
+              'opponentName': userName,
               'creationTime': creationTime,
               'moves': validMoves,
             });
@@ -1231,6 +1316,80 @@ class GameProvider extends ChangeNotifier{
 
 
 
+
+  // Future<void> saveGameToUserHistory(String gameId, List<String> moves) async {//TODO MOVES URGENT
+  //   if (gameId.isEmpty) {
+  //     print('Game ID is empty');
+  //     return;
+  //   }
+  //   try {
+  //     final gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
+  //     if (gameSnapshot.exists) {
+  //       final gameData = gameSnapshot.data() as Map<String, dynamic>;
+  //
+  //       String gameCreatorUid = gameData[Constants.gameCreatorUid];
+  //       String opponentUid = gameData[Constants.userId];
+  //       String gameCreatorName = gameData[Constants.gameCreatorName];
+  //       String opponentName = gameData[Constants.userName];
+  //       String creationTime = gameData[Constants.dateCreated];
+  //       List<String> validMoves = moves.where(isValidMove).toList();
+  //
+  //
+  //       String formattedCreationTime = formatTimestamp(creationTime);
+  //
+  //
+  //       await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
+  //         Constants.gameHistory: FieldValue.arrayUnion([{
+  //           'opponentName': opponentName,
+  //           'creationTime': formattedCreationTime ,
+  //           'moves': validMoves,
+  //         }])
+  //
+  //       });
+  //
+  //       await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
+  //         Constants.gameHistory: FieldValue.arrayUnion([{
+  //           'opponentName': gameCreatorName,
+  //           'creationTime': formattedCreationTime ,
+  //           'moves': validMoves,
+  //         }])
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print('Failed to save game history: $e');
+  //   }
+  // }
+
+  // Future<void> updateUserGameHistory(String userId, Map<String, dynamic> newGame) async {
+  //   DocumentReference userRef = firebaseFirestore.collection(Constants.users).doc(userId);
+  //   print("new game :$newGame");
+  //
+  //   try {
+  //     // Fetch the user data
+  //     DocumentSnapshot userSnapshot = await userRef.get();
+  //     if (userSnapshot.exists) {
+  //       Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+  //
+  //       // Update the user's game history
+  //       List<dynamic> gameHistory = userData[Constants.gameHistory] ?? [];
+  //       gameHistory.add(newGame);
+  //
+  //       await userRef.update({
+  //         Constants.gameHistory: gameHistory,
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print('Error updating game history: $e');
+  //   }
+  // }
+
+
+
+
+
+
+
+
   Future<void> leaveGame(String userId) async {
     final docRef = FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId);
 
@@ -1244,8 +1403,8 @@ class GameProvider extends ChangeNotifier{
           'winnerId': 'opponent', // Set the opponent as the winner
         });
         // Save game to user history before deletion
-        List<String> moves = (docSnapshot.data() as Map<String, dynamic>)[Constants.moves];
-        await saveGameToUserHistory(gameId, moves);
+        //List<String> moves = (docSnapshot.data() as Map<String, dynamic>)[Constants.moves];
+        //await saveGameToUserHistory(gameId, moves);
 
         // Delete the game from availableGames and runningGames
         // await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
@@ -1455,68 +1614,9 @@ class GameProvider extends ChangeNotifier{
     };
   }
 
-  Future<void> saveGameToUserHistory(String gameId, List<String> moves) async {
-    if (gameId.isEmpty) {
-      print('Game ID is empty');
-      return;
-    }
-    try {
-      final gameSnapshot = await firebaseFirestore.collection(Constants.runningGames).doc(gameId).get();
-      if (gameSnapshot.exists) {
-        final gameData = gameSnapshot.data() as Map<String, dynamic>;
-
-        String gameCreatorUid = gameData[Constants.gameCreatorUid];
-        String opponentUid = gameData[Constants.userId];
-        String gameCreatorName = gameData[Constants.gameCreatorName];
-        String opponentName = gameData[Constants.userName];
-        String creationTime = gameData[Constants.dateCreated];
-
-        String formattedCreationTime = formatTimestamp(creationTime);
 
 
-        await firebaseFirestore.collection(Constants.users).doc(gameCreatorUid).update({
-          Constants.gameHistory: FieldValue.arrayUnion([{
-            'opponentName': opponentName,
-            'creationTime': formattedCreationTime ,
-            'moves': moves,
-          }])
 
-        });
 
-        await firebaseFirestore.collection(Constants.users).doc(opponentUid).update({
-          Constants.gameHistory: FieldValue.arrayUnion([{
-            'opponentName': gameCreatorName,
-            'creationTime': formattedCreationTime ,
-            'moves': moves,
-          }])
-        });
-      }
-    } catch (e) {
-      print('Failed to save game history: $e');
-    }
-  }
-
-  Future<void> updateUserGameHistory(String userId, Map<String, dynamic> newGame) async {
-    DocumentReference userRef = firebaseFirestore.collection(Constants.users).doc(userId);
-    print("new game :$newGame");
-
-    try {
-      // Fetch the user data
-      DocumentSnapshot userSnapshot = await userRef.get();
-      if (userSnapshot.exists) {
-        Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
-
-        // Update the user's game history
-        List<dynamic> gameHistory = userData[Constants.gameHistory] ?? [];
-        gameHistory.add(newGame);
-
-        await userRef.update({
-          Constants.gameHistory: gameHistory,
-        });
-      }
-    } catch (e) {
-      print('Error updating game history: $e');
-    }
-  }
 
 }
