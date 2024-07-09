@@ -302,6 +302,7 @@ class GameProvider extends ChangeNotifier{
   //set incremental value
   void setIncrementalValue({required int value}){
     _incrementalValue = value;
+
     notifyListeners();
   }
 
