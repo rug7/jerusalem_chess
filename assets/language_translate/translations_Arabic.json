@@ -43,12 +43,44 @@
   "signUpSuccess": "تم التسجيل بنجاح.",
 
   "incEmailOrPass": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-  "errorOccurred": "حدث خطأ:"
+  "errorOccurred": "حدث خطأ:",
 
+  "passwordMismatch": "كلمات المرور غير متطابقة",
+  "confirmPass": "أكد كلمة المرور",
 
+  "searching": "جاري البحث عن لاعب، الرجاء الإنتظار",
+  "joining": "جارٍ الانضمام إلى اللعبة، الرجاء الانتظار",
 
+  "gm": "صباح الخير، ",
+  "ga": "مساء الخير، ",
+  "ge": "مساء الخير، ",
+  "gameInProg": "اللعبة لا تزال جارية",
+  "go": "انتهت اللعبة",
 
-
-
-
+  "settings": "الإعدادات",
+  "DarkMode": "الوضع الداكن",
+  "Remember Login Details": "تذكر تفاصيل تسجيل الدخول",
+  "Change Profile Picture": "تغيير صورة الملف الشخصي",
+  "Take Photo": "التقاط صورة",
+  "Choose from Gallery": "اختر من المعرض",
+  "Delete Current Photo": "حذف الصورة الحالية",
+  "helpSupport": "المساعدة والدعم",
+  "signOut": "تسجيل الخروج",
+  "notifications": "الإشعارات",
+  "privacySecurity": "الخصوصية والأمان",
+  "gameHistory": "سجل الألعاب",
+  "news": "الأخبار",
+  "communication": "الاتصال",
+  "enteryourphonenumber": "أدخل رقم هاتفك",
+  "invalidPhoneNumber": "يرجى إدخال رقم هاتف صالح"
 }
+
+
+
+
+
+
+
+
+
+

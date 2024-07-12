@@ -22,7 +22,7 @@ class MainAuthButton extends StatelessWidget {
     final oppColor = isLightMode ? Colors.black : Colors.white;
     return Material(
       elevation: 5,
-      color: const Color(0xFF663d99),
+      color: const Color(0xff4e3c96),
       borderRadius: BorderRadius.circular(10),
       child: MaterialButton(
         onPressed: onPressed,

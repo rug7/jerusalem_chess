@@ -83,7 +83,7 @@ class AuthenticationProvider extends ChangeNotifier{
       notifyListeners();
     });
   }
-  
+
   //store user data to shared preferences
   Future saveUserDataToSharedPref() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -98,7 +98,7 @@ class AuthenticationProvider extends ChangeNotifier{
   Future getUserDataToSharedPref() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String data = sharedPreferences.getString(Constants.userModel) ?? '';
-    
+
     _userModel = UserModel.fromMap(jsonDecode(data));
     _uid = _userModel!.uid;
     notifyListeners();
@@ -160,6 +160,45 @@ class AuthenticationProvider extends ChangeNotifier{
       onFail(e.toString());
     }
   }
+  void updateUserImage({
+    required String uid,
+    required File? fileImage,
+    required Function onSuccess,
+    required Function(String) onFail,
+  }) async {
+    try {
+      if (fileImage == null) {
+        // Handle deletion case, set profile image to an empty string in Firestore
+        await firebaseFirestore
+            .collection(Constants.users)
+            .doc(uid)
+            .update({'image': ''}); // Update 'image' field to empty string in Firestore
+
+        // Update local userModel in AuthenticationProvider
+        _userModel!.image = ''; // Assuming _userModel is already fetched
+      } else {
+        String imageUrl = await storeFileImageToStorage(
+          reference: '${Constants.userImages}/$uid.png',
+          file: fileImage,
+        );
+
+        // Update the user's image URL in Firestore
+        await firebaseFirestore.collection(Constants.users).doc(uid).update({
+          'image': imageUrl,
+        });
+
+        // Update local userModel in AuthenticationProvider
+        _userModel!.image = imageUrl; // Assuming _userModel is already fetched
+      }
+
+      onSuccess();
+      notifyListeners(); // Notify listeners of the change
+
+    } catch (e) {
+      onFail(e.toString());
+    }
+  }
+
 
 
   //store image to storage and return the download url
@@ -173,7 +212,7 @@ class AuthenticationProvider extends ChangeNotifier{
     return downloadUrl;
   }
 
-  Future<void> sighOutUser()async{
+  Future<void> signOutUser()async{
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     await firebaseAuth.signOut();
     _isSignedIn = false;
@@ -188,6 +227,78 @@ class AuthenticationProvider extends ChangeNotifier{
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+  Future<bool> checkIfSignedIn() async {
+    User? user = firebaseAuth.currentUser;
+    return user != null;
+  }
+  Future<bool> checkPhoneNumberMatch(String enteredPhoneNumber) async {
+    try {
+      User? currentUser = firebaseAuth.currentUser;
+      if (currentUser == null) {
+        print('User not authenticated');
+        return false;
+      }
+
+      DocumentSnapshot snapshot =
+      await firebaseFirestore.collection('users').doc(currentUser.uid).get();
+      if (!snapshot.exists) {
+        print('User document does not exist in Firestore');
+        return false;
+      }
+
+      String? phoneNumber = snapshot.get('phoneNumber'); // Adjust 'phoneNumber' according to your Firestore field name
+      if (phoneNumber == null) {
+        print('Phone number not found in user document');
+        return false;
+      }
+
+      return phoneNumber == enteredPhoneNumber;
+    } catch (e) {
+      print('Error checking phone number match: $e');
+      return false;
+    }
+  }
+  Future<void> signInWithPhoneNumber({
+    required String phoneNumber,
+    required void Function(PhoneAuthCredential) verificationCompleted,
+    required void Function(FirebaseAuthException) verificationFailed,
+    required void Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: verificationCompleted,
+        verificationFailed: (FirebaseAuthException authException) {
+          _isLoading = false; // Update loading state on error
+          notifyListeners();
+          verificationFailed(authException);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          // Handle code sent internally (optional)
+          // You can perform any logic here if needed
+          print('Verification code sent to $phoneNumber');
+        },
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+        timeout: Duration(seconds: 60),
+      );
+    } catch (e) {
+      _isLoading = false; // Update loading state on error
+      notifyListeners();
+      print("Error signing in with phone number: $e");
+
+      if (e is FirebaseAuthException) {
+        verificationFailed(e);
+      } else {
+        verificationFailed(FirebaseAuthException(code: 'unknown', message: e.toString()));
+      }
+    }
+  }
+
+
+
 
 }
 

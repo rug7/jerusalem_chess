@@ -41,14 +41,17 @@ dependencies:
   square_bishop: ^0.3.0
   provider: ^6.1.2
   stockfish: ^1.5.0
-  firebase_core: ^2.31.0
-  firebase_auth: ^4.19.5
-  cloud_firestore: ^4.17.3
-  firebase_storage: ^11.7.5
-  image_cropper: ^6.0.0
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  image_cropper: 7.0.4
   image_picker: ^1.1.1
   lottie: ^3.1.2
   shared_preferences: ^2.2.3
+  uuid: ^4.4.0
+  intl: ^0.17.0
+  chess: ^0.8.1
 
   equatable: any
 dev_dependencies:
@@ -60,7 +63,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

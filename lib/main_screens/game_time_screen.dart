@@ -86,10 +86,10 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('chooseGameTime', _translations,),
-          style: TextStyle(color: textColor,
+          style: const TextStyle(color: Colors.white,
               fontFamily: 'IBM Plex Sans Arabic',
               fontWeight: FontWeight.w700),
         ),
@@ -101,7 +101,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
             onPressed: _themeLanguageProvider.toggleThemeMode,
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.language, color: textColor),
+            icon:const  Icon(Icons.language, color: Colors.white),
             onSelected: _themeLanguageProvider.changeLanguage,
             itemBuilder: (BuildContext context) =>
             [
@@ -117,7 +117,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
           ),
         ],
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -170,25 +170,6 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
               ),
             ),
           ),
-          Container(
-            color: const Color(0xFF663d99),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                          (Route<dynamic> route) => false,// Ensure you import HomeScreen if not already imported
-                    );
-                  },
-                  icon: SvgPicture.asset('assets/images/black_logo.svg', height: 50),
-                ),
-              ],
-            ),
-          ),
-
         ],
       ),
     );

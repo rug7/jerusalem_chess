@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:squares/squares.dart';
@@ -13,14 +15,16 @@ Widget buildGameType(
   return InkWell(
     onTap: onTap,
     child: Card(
+      // color: Colors.transparent,
+      // elevation: 0,
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        icon != null ? Icon(icon) :gameTime! =='60+0'? const SizedBox.shrink() : Text(gameTime),
+        icon != null ? Icon(icon,size: 48,) :gameTime! =='60+0'? const SizedBox.shrink() : Text(gameTime),
         const SizedBox(
           height: 10,
         ),
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 14,fontFamily:'IBM Plex Sans Arabic'),
         )
       ]),
     ),
@@ -136,3 +140,21 @@ bool validateEmail(String email){
   //check if the email matches the regular expression
   return emailRegExp.hasMatch(email);
 }
+
+//load from json files
+Future<Map<String, dynamic>> loadTranslations(String language) async {
+  String content;
+  try {
+    content = await rootBundle.loadString('assets/language_translate/translations_$language.json');
+  } catch (e) {
+    print('Error loading translations: $e');
+    return {};
+  }
+  return json.decode(content);
+}
+//implement translation functions
+String getTranslation(String key, Map<String, dynamic> translations) {
+  return translations[key] ?? key;
+}
+
+

@@ -10,7 +10,6 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
-import '../main_screens/color_option_screen.dart';
 import '../providers/theme_language_provider.dart';
 import '../widgets/main_auth_button.dart';
 import '../widgets/widgets.dart';
@@ -30,11 +29,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late String name;
   late String email;
   late String password;
+  late String confirmPassword;
   bool obscureText = true;
+  late String phoneNumber;
+  String _selectedPrefix = '050'; // Default initial value
+
+
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // final TextEditingController nameController = TextEditingController();
-  // final TextEditingController emailController = TextEditingController();
+  // final TextEditingController emailController = TextEdi tingController();
   // final TextEditingController passwordController = TextEditingController();
 
 
@@ -231,6 +235,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Save the form
       formKey.currentState!.save();
 
+      if (password != confirmPassword) {
+        authProvider.showSnackBar(context: context, content: getTranslation('passwordMismatch', _translations), color: Colors.red);
+        return;
+      }
+
       try {
         // Set loading state to true
         authProvider.setIsLoading(value: true);
@@ -255,6 +264,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             email: email,
             image: '',
             createdAt: '',
+            playerRating: 700,
+            phoneNumber: phoneNumber
           );
 
           authProvider.saveUserDataToFireStore(
@@ -264,19 +275,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
               formKey.currentState!.reset();
+              // Save user data to shared preferences
+              await authProvider.saveUserDataToSharedPref();
+
+              // Set the signed-in state
+              await authProvider.setSignedIn();
 
               // Sign out the user and navigate to the login screen
-              authProvider.showSnackBar(context: context, content: 'Signed Up Successfully',color: Colors.green);
+              authProvider.showSnackBar(context: context, content: getTranslation('signUpSuccess', _translations),color: Colors.green);
 
-              await authProvider.sighOutUser().whenComplete(() {
-                // Navigate to the home screen
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      (Route<dynamic> route) => false,
-                );
+              authProvider.setIsLoading(value: false);
 
-              });
+              // Navigate to the home screen
+              navigateToHome();
             },
             onFail: (error) {
               // Show error snackbar
@@ -321,6 +332,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       authProvider.showSnackBar(context: context, content: getTranslation('fillFields',_translations),color: Colors.red);
     }
+
+  }
+  bool isNumeric(String input) {
+    final numericRegExp = RegExp(r'^[0-9]+$');
+    return numericRegExp.hasMatch(input);
+  }
+
+  void navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false,
+    );
   }
 
 
@@ -339,7 +363,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('homeTitle', _translations),
           style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
@@ -414,7 +438,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         right: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF663d99),
+                            color: const Color(0xff4e3c96),
                             border: Border.all(width: 2,color: Colors.white,),
                             borderRadius: BorderRadius.circular(35),
                           ),
@@ -446,7 +470,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         right: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF663d99),
+                            color: const Color(0xff4e3c96),
                             border: Border.all(width: 2,color: Colors.white,),
                             borderRadius: BorderRadius.circular(35),
                           ),
@@ -537,11 +561,67 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       },
                     ),
                   ),
+
                   const SizedBox(height: 20,),
+            Directionality(
+              textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+              child: Row(
+                children: [
+                  DropdownButton<String>(
+                    value: _selectedPrefix,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedPrefix = newValue!;
+                        phoneNumber = newValue; // Reset the phone number with the new prefix
+                      });
+                    },
+                    items: <String>['050', '052', '053', '054', '058']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      textInputAction: TextInputAction.next,
+                      maxLength: 7, // Adjust as per your requirements
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      textAlign: textAlignCheck,
+                      // Remove textDirection: textDirectionCheck, as it's handled by Directionality
+                      decoration: textFormDecoration.copyWith(
+                        counterText: '',
+                        labelText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                        hintText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                      ),
+                      validator: (value) {
+                        // Add validation logic as needed
+                        if (value == null || value.isEmpty || value.length < 7||!isNumeric(value)) {
+                          return getTranslation('invalidPhoneNumber', _translations); // Translate this as needed
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          phoneNumber = _selectedPrefix + value;
+
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+
+            const SizedBox(height: 20,),
+
                   Directionality(
                     textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
                     child: TextFormField(
-                      textInputAction: TextInputAction.done,
+                      textInputAction: TextInputAction.next,
                       maxLength: 12,
                       maxLines: 1,
                       style: TextStyle(color: oppColor),
@@ -578,6 +658,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 20,),
+                  Directionality(
+                    textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                    child: TextFormField(
+                      textInputAction: TextInputAction.done,
+                      maxLength: 12,
+                      maxLines: 1,
+                      style: TextStyle(color: oppColor),
+                      textAlign: textAlignCheck,
+                      textDirection: textDirectionCheck,
+                      decoration: textFormDecoration.copyWith(
+                        counterText: '',
+                        labelText: getTranslation('confirmPass', _translations),
+                        hintText: getTranslation('confirmPass', _translations),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              obscureText = !obscureText;
+                            });
+                          },
+                          icon: Icon(
+                            obscureText ? Icons.visibility_off : Icons.visibility,
+                          ),
+                        ),
+                      ),
+                      obscureText: obscureText,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return getTranslation('passwordValidator', _translations);
+                        } else if (value.length < 8) {
+                          return getTranslation('passwordLenValidator', _translations);
+                        } else if (value != password) {
+                          return getTranslation('passwordMismatch', _translations);
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        confirmPassword = value;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+
                   authProvider.isLoading ?  // Set the color to transparent to allow the animation to be full screen
                   Lottie.asset(
                       'assets/animations/signUpLoading.json',height: 100,width: 100,

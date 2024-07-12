@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chess_1/authentication/searching_for_players.dart';
 import 'package:flutter_chess_1/constants.dart';
+import 'package:flutter_chess_1/providers/authentication_provider.dart';
 import 'package:flutter_chess_1/providers/game_provider.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
+import '../helper/helper_methods.dart';
 import '../widgets/widgets.dart';
 import 'package:flutter_chess_1/providers/theme_language_provider.dart';
-
 import 'home_screen.dart';
 
 class ColorOptionScreen extends StatefulWidget {
@@ -19,21 +19,7 @@ class ColorOptionScreen extends StatefulWidget {
   State<ColorOptionScreen> createState() => _ColorOptionScreenState();
 }
 
-//load from json files
-Future<Map<String, dynamic>> loadTranslations(String language) async {
-  String content;
-  try {
-    content = await rootBundle.loadString('assets/language_translate/translations_$language.json');
-  } catch (e) {
-    print('Error loading translations: $e');
-    return {};
-  }
-  return json.decode(content);
-}
-//implement translation functions
-String getTranslation(String key, Map<String, dynamic> translations) {
-  return translations[key] ?? key;
-}
+
 
 class _ColorOptionScreenState extends State<ColorOptionScreen> {
   Map<String, dynamic> translations = {};
@@ -72,10 +58,10 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
     return Scaffold(
       backgroundColor: _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF663d99),
+        backgroundColor: const Color(0xff4e3c96),
         title: Text(
           getTranslation('setUpText', translations),
-          style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
+          style: const TextStyle(color: Colors.white, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
@@ -84,7 +70,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
             onPressed: _themeLanguageProvider.toggleThemeMode, // Use ThemeLanguageProvider
           ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.language, color: textColor),
+            icon: const Icon(Icons.language, color: Colors.white),
             onSelected: (String selectedLanguage) {
               _themeLanguageProvider.changeLanguage(selectedLanguage); // Use ThemeLanguageProvider
               reloadTranslations(selectedLanguage);
@@ -102,7 +88,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
           ),
         ],
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -256,58 +242,67 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                     : const SizedBox.shrink(),
 
                 const SizedBox(height: 20,),
-                ElevatedButton(
-                  onPressed:(){
-                    playGame(gameProvider: gameProvider);
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.pressed)) {
-                          return Theme.of(context).colorScheme.primary.withOpacity(0.5);
-                        }
-                        return _themeLanguageProvider.isLightMode ? const Color(0xFF663d99) : const Color(0xFF663d99); // Different color in dark mode
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    gameProvider.isLoading
+                        ? Lottie.asset(
+                      'assets/animations/landing.json',
+                      height: 200,
+                      width: 200,
+                    )
+                        : ElevatedButton(
+                      onPressed: () {
+                        playGame(gameProvider: gameProvider);
                       },
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                              (Set<WidgetState> states) {
+                            if (states.contains(WidgetState.pressed)) {
+                              return Theme.of(context).colorScheme.primary.withOpacity(0.5);
+                            }
+                            return _themeLanguageProvider.isLightMode ? const Color(0xff4e3c96) : const Color(0xff4e3c96);
+                          },
+                        ),
+                        foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                      ),
+                      child: Text(
+                        getTranslation('playText', translations),
+                        style: TextStyle(
+                          color: textColor,
+                          fontFamily: 'IBM Plex Sans Arabic',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                    foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
-                  ),
-                  child: Text(
-                    getTranslation('playText', translations),
-                    style: TextStyle(
-                      color: textColor, // Define `buttonText` based on theme
-                      fontFamily: 'IBM Plex Sans Arabic',
-                      fontWeight: FontWeight.w700,
+                    gameProvider.isLoading
+                        ? const SizedBox(height: 20) // Add space between the animation and the text
+                        : Text(
+                      gameProvider.waitingText,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 30,
+                        fontFamily: 'IBM Plex Sans Arabic',
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+
+                const SizedBox(height: 20,),
+                gameProvider.vsComputer ? const SizedBox.shrink() : Text(gameProvider.waitingText),
               ],
             ),
           );
         },
-      ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFF663d99),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            IconButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      (Route<dynamic> route) => false,
-                );
-              },
-              icon: SvgPicture.asset('assets/images/black_logo.svg', height: 50),
-            ),
-          ],
-        ),
       ),
     );
   }
   void playGame({
     required GameProvider gameProvider,
   })async{
+    final userModel = context.read<AuthenticationProvider>().userModel;
     if (widget.isCustomTime){
       //check the timers if they are >0
       if(whiteTime<=0 || blackTime <= 0){
@@ -356,6 +351,34 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         }
         else {
           //search for players
+          //TODO Online play
+          gameProvider.searchForPlayer(
+              userModel: userModel!,
+              onSuccess: (){
+                if(gameProvider.waitingText == 'جاري البحث عن لاعب، الرجاء الإنتظار'){
+                  //gameProvider.waitingText == getTranslation('searching', translations);
+                  //stay on this screen and wait
+                  //TODO put an animation and navigate while waiting
+
+
+                  gameProvider.checkIfOpponentJoined(
+                      userModel: userModel,
+                      onSuccess: (){
+                        gameProvider.setIsLoading(value: false);
+                        //navigate to game screen
+                        Navigator.pushNamed(context, Constants.gameScreen);
+                      });
+
+                }else{
+                  gameProvider.setIsLoading(value: false);
+                  //navigate to game screen
+                 Navigator.pushNamed(context, Constants.gameScreen);
+                }
+
+          }, onFail: (error){
+            gameProvider.setIsLoading(value: false);
+            showSnackBar(context: context, content: error);
+          });
         }
       });
     }
