@@ -57,11 +57,13 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           .get();
 
       if (userDoc.exists) {
-        setState(() {
-          gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
-          isLoading = false;
-        });
-      }
+        if(mounted){
+          setState(() {
+            gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
+            isLoading = false;
+          });
+        }
+        }
     }
   }
 

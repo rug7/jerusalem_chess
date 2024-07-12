@@ -942,10 +942,13 @@ class _GameScreenState extends State<GameScreen> {
             );
             gameProvider.setPlayWhiteTimer(value: true);
           } else {
+            print("move gs white: $move");
             await gameProvider.playMoveAndSaveToFirestore(
               context: context,
               move: move,
               isWhitesMove: true,
+              beforeFen: beforeFen,
+              afterFen: afterFen,
             );
           }
         } else {
@@ -961,6 +964,8 @@ class _GameScreenState extends State<GameScreen> {
               context: context,
               move: move,
               isWhitesMove: false,
+              beforeFen: beforeFen,
+              afterFen: afterFen,
             );
           }
         }

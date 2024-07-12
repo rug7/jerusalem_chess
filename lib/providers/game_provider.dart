@@ -1035,7 +1035,14 @@ class GameProvider extends ChangeNotifier{
                     moveString: game[Constants.blacksCurrentMove]
                 );
 
-                bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+                //TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+                final beforeFen = getPositionFen();
+                bool result = makeSquaresMove(convertedMove);
+                final afterFen = getPositionFen();
+
+                final moveDetails = getMoveDetails(beforeFen, afterFen);
+                final formattedMove = formatMoveDetails(moveDetails, convertedMove.toString().split('-')[1]);
+
 
                 if(result){
                   setSquaresState().whenComplete((){
@@ -1044,7 +1051,7 @@ class GameProvider extends ChangeNotifier{
 
                     gameOverListener(context: context, onNewGame: (){});
                   });
-                  updateMoveList(convertedMove.toString());
+                  updateMoveList(formattedMove);
 
                 }
               }
@@ -1065,7 +1072,14 @@ class GameProvider extends ChangeNotifier{
               );
 
 
-              bool result = makeSquaresMove(convertedMove);//TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+              //TODO update the moves in multiplayer , the move is game[Constants.blacksCurrentMove] and game[Constants.whitesCurrentMove]
+
+              final beforeFen = getPositionFen();
+              bool result = makeSquaresMove(convertedMove);
+              final afterFen = getPositionFen();
+
+              final moveDetails = getMoveDetails(beforeFen, afterFen);
+              final formattedMove = formatMoveDetails(moveDetails, convertedMove.toString().split('-')[1]);
               if(result){
                 setSquaresState().whenComplete((){
                   pauseWhiteTimer();
@@ -1073,7 +1087,7 @@ class GameProvider extends ChangeNotifier{
 
                   gameOverListener(context: context, onNewGame: (){});
                 });
-                updateMoveList(convertedMove.toString());
+                updateMoveList(formattedMove);
 
               }
             }
@@ -1115,8 +1129,12 @@ class GameProvider extends ChangeNotifier{
     });
   }
   void updateMoveList(String move) {
-    moveList.add(move);
-    notifyListeners();
+    if (isValidMove(move)) {
+      moveList.add(move);
+      notifyListeners();
+    } else {
+      print("Invalid move: $move");
+    }
   }
 
 
@@ -1124,7 +1142,6 @@ class GameProvider extends ChangeNotifier{
   Move convertMoveStringToMove({
     required String moveString,
   }) {
-    print("move String :    $moveString");
     //Split the move string into it's components
     List<String> parts = moveString.split('-');
 
@@ -1154,11 +1171,13 @@ class GameProvider extends ChangeNotifier{
   }
 
 
-  //play move and save to firestore
   Future<void> playMoveAndSaveToFirestore({
     required BuildContext context,
     required Move move,
     required bool isWhitesMove,
+    required String beforeFen,
+    required String afterFen,
+
   }) async {
     if (!_vsComputer) {
       String formattedCreationTime = formatTimestamp(_creationTime);
@@ -1179,10 +1198,19 @@ class GameProvider extends ChangeNotifier{
         String gameCreatorName = gameData[Constants.gameCreatorName];
         String opponentName = gameData[Constants.userName];
 
-        // Add the current move to the moves list
-        String convertedMove = convertMoveFormatProvider(move.toString());
-        if (isValidMove(convertedMove)) {
-          moves.add(convertedMove);
+        final moveDetails = getMoveDetails(beforeFen, afterFen);
+
+        final newMove = convertMoveFormatProvider(move.toString());
+        print("new move gp $newMove");
+
+        print("Human Move Details: ${moveDetails['movedPiece']} ${moveDetails['specialMove']} ${moveDetails['capturedPiece']}");
+
+        final formattedMove = formatMoveDetails(moveDetails, newMove.split('-')[1]);
+        print("formatted move gp $formattedMove");
+
+
+       if (isValidMove(formattedMove)) {
+          moves.add(formattedMove);
         }
 
         // Check if it's white's move
@@ -1195,7 +1223,7 @@ class GameProvider extends ChangeNotifier{
               .update({
             Constants.positionFen: getPositionFen(),
             Constants.whitesCurrentMove: move.toString(),
-            Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+            Constants.moves: FieldValue.arrayUnion([formattedMove]),
             Constants.isWhitesTurn: false,
             Constants.playState: PlayState.theirTurn.name.toString(),
           });
@@ -1218,12 +1246,11 @@ class GameProvider extends ChangeNotifier{
               .update({
             Constants.positionFen: getPositionFen(),
             Constants.blacksCurrentMove: move.toString(),
-            Constants.moves: FieldValue.arrayUnion([convertMoveFormatProvider(move.toString())]),
+            Constants.moves: FieldValue.arrayUnion([formattedMove]),
             Constants.isWhitesTurn: true,
             Constants.playState: PlayState.ourTurn.name.toString(),
           });
           print("thier turn ${PlayState.ourTurn.name.toString()}");
-
 
           // Pause black's timer and start white's timer
           pauseBlackTimer();
@@ -1234,6 +1261,8 @@ class GameProvider extends ChangeNotifier{
             );
           });
         }
+        print("print moves $moves");
+
         await saveMoveToUserHistory(
           gameId: gameId,
           userId: gameCreatorUid,
@@ -1247,13 +1276,13 @@ class GameProvider extends ChangeNotifier{
     }
   }
 
+
   bool isValidMove(String move) {
-    // Ensure the move matches the chess notation format like "e2-e4"
-    final moveRegExp = RegExp(r'^[a-h][1-8]-[a-h][1-8]$');
+    // Adjust the regex to match valid chess move notations including standard and some special cases
+    final moveRegExp = RegExp(r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:x[a-h][1-8])?(?:[a-h][1-8])?(?:O-O|O-O-O)?(?:\+|#)?$');
     return moveRegExp.hasMatch(move);
   }
 
-//TODO MAKE A MIX BETWEEN THE TWO SAVING TO HISTORY METHODS
   Future<void> saveMoveToUserHistory({
     required String gameId,
     required String userId,
@@ -1271,7 +1300,7 @@ class GameProvider extends ChangeNotifier{
       final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
       final opponentRef = firebaseFirestore.collection(Constants.users).doc(opponentId);
 
-      List<String> validMoves = moves.where(isValidMove).toList();
+      List<String> validMoves = moves.toList();
 
       // Update the game history for both users
       await firebaseFirestore.runTransaction((transaction) async {
@@ -1495,12 +1524,16 @@ class GameProvider extends ChangeNotifier{
         var data = documentSnapshot.data() as Map<String, dynamic>?;
         if (data != null) {
           List<dynamic> firestoreMoves = data[Constants.moves] ?? [];
-          moveList = firestoreMoves.map((e) => (e.toString()).split('-')[1]).toList();
+          moveList = firestoreMoves.map((e) {
+            List<String> parts = e.toString().split('-');
+            return parts.length > 1 ? parts[1] : '';
+          }).toList();
           notifyListeners(); // Notify listeners to update the UI
         }
       }
     });
   }
+
 
   String convertMoveFormatProvider(String move) {
     // Split the move string into source and destination parts
@@ -1627,6 +1660,127 @@ class GameProvider extends ChangeNotifier{
       gameCreatorUid: gameCreatorNewRating,
       opponentUid: opponentNewRating,
     };
+  }
+
+  Map<String, String> getMoveDetails(String beforeFen, String afterFen) {
+    List<String> beforeParts = beforeFen.split(' ');
+    List<String> afterParts = afterFen.split(' ');
+
+    String beforeBoard = beforeParts[0];
+    String afterBoard = afterParts[0];
+
+    String expandFenRow(String row) {
+      String expandedRow = '';
+      for (int i = 0; i < row.length; i++) {
+        if (int.tryParse(row[i]) != null) {
+          expandedRow += '1' * int.parse(row[i]);
+        } else {
+          expandedRow += row[i];
+        }
+      }
+      return expandedRow;
+    }
+
+    List<String> beforeRows = beforeBoard.split('/').map(expandFenRow).toList();
+    List<String> afterRows = afterBoard.split('/').map(expandFenRow).toList();
+
+    String movedPiece = '';
+    String capturedPiece = '';
+    String specialMove = '';
+
+    for (int rank = 0; rank < 8; rank++) {
+      for (int file = 0; file < 8; file++) {
+        if (beforeRows[rank][file] != afterRows[rank][file]) {
+          // Piece moved to this position
+          if (beforeRows[rank][file] == '1' && afterRows[rank][file] != '1') {
+            movedPiece = getPieceIcon(afterRows[rank][file]);
+          }
+          // Piece moved from this position
+          else if (beforeRows[rank][file] != '1' && afterRows[rank][file] == '1') {
+            // No need to assign capturedPiece here
+          }
+          // Capture detected
+          else if (beforeRows[rank][file] != '1' && afterRows[rank][file] != '1') {
+            movedPiece = getPieceIcon(beforeRows[rank][file]);
+            capturedPiece = getPieceIcon(afterRows[rank][file]);
+          }
+        }
+      }
+    }
+
+    if (capturedPiece.isNotEmpty) {
+      specialMove = 'X';
+    }
+
+    if (movedPiece == '♔' || movedPiece == '♚') {
+      if (beforeFen.contains('K') && !afterFen.contains('K') && afterFen.contains('g1')) {
+        specialMove = 'O-O';
+      } else if (beforeFen.contains('Q') && !afterFen.contains('Q') && afterFen.contains('c1')) {
+        specialMove = 'O-O-O';
+      } else if (beforeFen.contains('k') && !afterFen.contains('k') && afterFen.contains('g8')) {
+        specialMove = 'O-O';
+      } else if (beforeFen.contains('q') && !afterFen.contains('q') && afterFen.contains('c8')) {
+        specialMove = 'O-O-O';
+      }
+    }
+
+    if (!afterBoard.contains('K') || !afterBoard.contains('k')) {
+      specialMove = '#';
+    }
+
+    return {
+      'movedPiece': movedPiece,
+      'capturedPiece': capturedPiece,
+      'specialMove': specialMove,
+    };
+  }
+
+
+
+
+
+  String formatMoveDetails(Map<String, String> moveDetails, String move) {
+    final piece = moveDetails['movedPiece'] ?? '';
+    final specialMove = moveDetails['specialMove'] ?? '';
+    final capturedPiece = moveDetails['capturedPiece'] ?? '';
+
+    if (specialMove == 'X' && capturedPiece.isNotEmpty) {
+      return '$capturedPiece$specialMove$move';
+    } else if (specialMove == 'O-O' || specialMove == 'O-O-O' || specialMove == '#') {
+      return '$piece$specialMove';
+    } else if (specialMove == '+') {
+      return '$piece$move$specialMove';
+    } else {
+      return '$piece$move';
+    }
+  }
+
+
+
+
+
+
+
+
+  // Map for piece icons
+  Map<String, String> pieceIcons = {
+    'K': '♔',
+    'Q': '♕',
+    'R': '♖',
+    'B': '♗',
+    'N': '♘',
+    'P': '♙',
+    'k': '♚',
+    'q': '♛',
+    'r': '♜',
+    'b': '♝',
+    'n': '♞',
+    'p': '♟︎',
+  };
+
+  // Function to get the icon for a piece
+  String getPieceIcon(String piece) {
+    return pieceIcons[piece] ?? piece;
   }
 
 
