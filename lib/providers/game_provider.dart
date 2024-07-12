@@ -1209,7 +1209,7 @@ class GameProvider extends ChangeNotifier{
         print("formatted move gp $formattedMove");
 
 
-       if (isValidMove(formattedMove)) {
+        if (isValidMove(formattedMove)) {
           moves.add(formattedMove);
         }
 
@@ -1279,7 +1279,7 @@ class GameProvider extends ChangeNotifier{
 
   bool isValidMove(String move) {
     // Adjust the regex to match valid chess move notations including standard and some special cases
-    final moveRegExp = RegExp(r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:x[a-h][1-8])?(?:[a-h][1-8])?(?:O-O|O-O-O)?(?:\+|#)?$');
+    final moveRegExp = RegExp(r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:X[a-h][1-8])?(?:[a-h][1-8])?(?:O-O|O-O-O)?(?:\+|#)?$');
     return moveRegExp.hasMatch(move);
   }
 

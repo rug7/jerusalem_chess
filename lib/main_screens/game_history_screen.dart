@@ -63,7 +63,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
             isLoading = false;
           });
         }
-        }
+      }
     }
   }
 
