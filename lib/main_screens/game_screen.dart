@@ -875,8 +875,8 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   bool isValidMove(String move) {
-    // Ensure the move matches the chess notation format like "e2-e4"
-    final moveRegExp = RegExp(r'^[a-h][1-8][a-h][1-8]$');
+    final moveRegExp = RegExp(
+        r'^([♔♕♖♗♘♚♛♜♝♞]?([a-h][1-8]|[xX][a-h][1-8]))[+#]?$|^(O-O|O-O-O)$');
     return moveRegExp.hasMatch(move);
   }
 
@@ -1154,13 +1154,13 @@ class _GameScreenState extends State<GameScreen> {
     'R': '♖',
     'B': '♗',
     'N': '♘',
-    'P': '♙',
+    'P': '',
     'k': '♚',
     'q': '♛',
     'r': '♜',
     'b': '♝',
     'n': '♞',
-    'p': '♟︎',
+    'p': '︎',
   };
 
   // Function to get the icon for a piece
@@ -1375,7 +1375,7 @@ class _GameScreenState extends State<GameScreen> {
                       backgroundImage: NetworkImage(userModel.image),
                     ),
                     title: Text(userModel.name),
-                    subtitle: Text('Rating: $opponentRating }'),
+                    subtitle: Text('Rating: ${userModel.playerRating} }'),
                     trailing: Text(
                       whitesTimer,
                       style: const TextStyle(fontSize: 16),
@@ -1572,6 +1572,8 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+
+
   Future<bool?> _showExitConfirmationDialog(BuildContext context) async {
     final gameProvider = context.read<GameProvider>();
     final userModel = context.read<AuthenticationProvider>().userModel;
@@ -1590,6 +1592,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           TextButton(
             onPressed: () async {
+              gameProvider.setWaitingText();
               if (gameProvider.vsComputer) {
                 Navigator.of(context).pop(true);
                 // Reset the game when the user confirms to leave

@@ -118,6 +118,7 @@ class GameProvider extends ChangeNotifier{
   String _creationTime = '';
 
   String get gameId => _gameId;
+  String get creationTime => _creationTime;
 
   Duration _whiteTime = Duration.zero;
   Duration _blackTime = Duration.zero;
@@ -158,13 +159,12 @@ class GameProvider extends ChangeNotifier{
   bool get isLoading => _isLoading;
 
 
-  void initializeCreationTime() {
-    if (_creationTime.isEmpty) {
-      _creationTime = DateTime.now().toIso8601String();
-    }
-  }
+  // void initializeCreationTime() {
+  //   if (_creationTime.isEmpty) {
+  //     _creationTime = DateTime.now().toIso8601String();
+  //   }
+  // }
 
-  String get creationTime => _creationTime;
 
 
 
@@ -262,13 +262,13 @@ class GameProvider extends ChangeNotifier{
     return result;
   }
   String formatTimestamp(String timestamp) {
-    try {
-      DateTime dateTime = DateTime.parse(timestamp);
-      return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
-    } catch (e) {
-      print("Error formatting timestamp: $e");
-      return timestamp;
-    }
+
+    int timestampMillis = int.parse(timestamp);
+
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
+
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+
   }
 
 
@@ -486,6 +486,8 @@ class GameProvider extends ChangeNotifier{
           onNewGame: onNewGame,
         );
       }
+      // Delete the game from runningGames
+      firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
 
     }
   }
@@ -587,71 +589,74 @@ class GameProvider extends ChangeNotifier{
 
 
     }
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Game Over\n $whiteScoreToShow - $blackScoreToShow',
-          textAlign: TextAlign.center,
-        ),
-        content: Text(
-          resultsToShow.isNotEmpty ? resultsToShow : 'Game is still in progress',
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,  // Added this line
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      // Navigate to home Screen
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        Constants.homeScreen,
-                            (route) => false,
-                      );
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ),
-                Flexible(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      context.read<GameProvider>().toggleAnalysisBoard();
-                    },
-                    child: const Text(
-                      'Analysis Board',
-                      style: TextStyle(color: Colors.orange),
-                    ),
-                  ),
-                ),
-                // Flexible(
-                //   child: TextButton(
-                //     onPressed: () {
-                //       Navigator.pop(context);
-                //       // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
-                //       resetNewGame(newGame: true);
-                //       // reset the game
-                //     },
-                //     child: const Text('New Game',style: TextStyle(color: Colors.green)),
-                //   ),
-                // ),
-              ],
-            ),
+    if(context.mounted){
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: Text(
+            'Game Over\n $whiteScoreToShow - $blackScoreToShow',
+            textAlign: TextAlign.center,
           ),
-        ],
-      ),
-    );
+          content: Text(
+            resultsToShow.isNotEmpty ? resultsToShow : 'Game is still in progress',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,  // Added this line
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Navigate to home Screen
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          Constants.homeScreen,
+                              (route) => false,
+                        );
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.read<GameProvider>().toggleAnalysisBoard();
+                      },
+                      child: const Text(
+                        'Analysis Board',
+                        style: TextStyle(color: Colors.orange),
+                      ),
+                    ),
+                  ),
+                  // Flexible(
+                  //   child: TextButton(
+                  //     onPressed: () {
+                  //       Navigator.pop(context);
+                  //       // TODO 1- to clear the moveList, 2- to make the AI start first 3- to validate 4- to save the moveList to the Firebase
+                  //       resetNewGame(newGame: true);
+                  //       // reset the game
+                  //     },
+                  //     child: const Text('New Game',style: TextStyle(color: Colors.green)),
+                  //   ),
+                  // ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
+    }
 
   }
 
@@ -731,10 +736,10 @@ class GameProvider extends ChangeNotifier{
     required Function onSuccess,
     required Function(String) onFail,
   }) async {
+    testMoves();
     //create a game id
     _gameId = const Uuid().v4();
-    initializeCreationTime();
-
+    _creationTime = DateTime.now().millisecondsSinceEpoch.toString(); // Set creation time here
     notifyListeners();
     String formattedCreationTime = formatTimestamp(_creationTime);
 
@@ -916,6 +921,9 @@ class GameProvider extends ChangeNotifier{
 
       await updateGamesPlayed(_gameCreatorUid); // Update games played for game creator
       await updateGamesPlayed(userModel.uid);   // Update games played for joining user
+
+      await firebaseFirestore.collection(Constants.availableGames).doc(_gameCreatorUid).delete();
+
       onSuccess();
     }on FirebaseException catch(e){
       onFail(e.toString());
@@ -1041,7 +1049,11 @@ class GameProvider extends ChangeNotifier{
                 final afterFen = getPositionFen();
 
                 final moveDetails = getMoveDetails(beforeFen, afterFen);
-                final formattedMove = formatMoveDetails(moveDetails, convertedMove.toString().split('-')[1]);
+
+                final newBMove = convertMoveFormatProvider(game[Constants.blacksCurrentMove]);
+
+                final formattedMove = formatMoveDetails(moveDetails, newBMove.toString().split('-')[1]);
+                print("fr b :$formattedMove");
 
 
                 if(result){
@@ -1079,7 +1091,10 @@ class GameProvider extends ChangeNotifier{
               final afterFen = getPositionFen();
 
               final moveDetails = getMoveDetails(beforeFen, afterFen);
-              final formattedMove = formatMoveDetails(moveDetails, convertedMove.toString().split('-')[1]);
+              final newWMove = convertMoveFormatProvider(game[Constants.whitesCurrentMove]);
+
+              final formattedMove = formatMoveDetails(moveDetails, newWMove.toString().split('-')[1]);
+              print("fr w :$formattedMove");
               if(result){
                 setSquaresState().whenComplete((){
                   pauseWhiteTimer();
@@ -1180,7 +1195,7 @@ class GameProvider extends ChangeNotifier{
 
   }) async {
     if (!_vsComputer) {
-      String formattedCreationTime = formatTimestamp(_creationTime);
+
 
       final gameSnapshot = await firebaseFirestore
           .collection(Constants.runningGames)
@@ -1190,6 +1205,7 @@ class GameProvider extends ChangeNotifier{
           .get();
       List<String> moves = [];
       if (gameSnapshot.exists) {
+        String formattedCreationTime = formatTimestamp(_creationTime);
         final gameData = gameSnapshot.data() as Map<String, dynamic>;
         moves = (gameData[Constants.moves] as List<dynamic>).map((move) => move.toString()).toList();
 
@@ -1209,9 +1225,9 @@ class GameProvider extends ChangeNotifier{
         print("formatted move gp $formattedMove");
 
 
-       if (isValidMove(formattedMove)) {
+       // if (isValidMove(formattedMove)) {
           moves.add(formattedMove);
-        }
+        //}
 
         // Check if it's white's move
         if (isWhitesMove) {
@@ -1277,11 +1293,38 @@ class GameProvider extends ChangeNotifier{
   }
 
 
+  // bool isValidMove(String move) {
+  //   // Adjust the regex to match valid chess move notations including standard and some special cases
+  //   final moveRegExp = RegExp(r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:x[a-h][1-8])?(?:[a-h][1-8])?(?:O-O|O-O-O)?(?:\+|#)?$');
+  //   return moveRegExp.hasMatch(move);
+  // }
+  //this one works!!!
   bool isValidMove(String move) {
-    // Adjust the regex to match valid chess move notations including standard and some special cases
-    final moveRegExp = RegExp(r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:x[a-h][1-8])?(?:[a-h][1-8])?(?:O-O|O-O-O)?(?:\+|#)?$');
+    final moveRegExp = RegExp(
+        r'^([♔♕♖♗♘♙♚♛♜♝♞♟]?([a-h][1-8]|[xX][a-h][1-8]))[+#]?$|^(O-O|O-O-O)$');
     return moveRegExp.hasMatch(move);
   }
+
+  //also works
+  // bool isValidMove(String move) {
+  //   final moveRegExp = RegExp(
+  //       r'^([♔♕♖♗♘♙♚♛♜♝♞]?([a-h][1-8]|[x][a-h][1-8]))[+#]?$|^(O-O|O-O-O)$');
+  //   return moveRegExp.hasMatch(move);
+  // }
+
+
+
+  // bool isValidMove(String move) {
+  //   final moveRegExp = RegExp(
+  //       r'^[♔♕♖♗♘♙♚♛♜♝♞♟]?[a-h][1-8](?:[xX][a-h][1-8])?[+#]?$|^(O-O|O-O-O)$');
+  //   return moveRegExp.hasMatch(move);
+  //}
+
+
+
+
+
+
 
   Future<void> saveMoveToUserHistory({
     required String gameId,
@@ -1299,8 +1342,10 @@ class GameProvider extends ChangeNotifier{
       }
       final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
       final opponentRef = firebaseFirestore.collection(Constants.users).doc(opponentId);
+      print("moves history: $moves");
 
-      List<String> validMoves = moves.toList();
+      List<String> validMoves = moves.where(isValidMove).toList();
+      print("valid moves:$validMoves");
 
       // Update the game history for both users
       await firebaseFirestore.runTransaction((transaction) async {
@@ -1357,6 +1402,7 @@ class GameProvider extends ChangeNotifier{
       print('Failed to save move to user history: $e');
     }
   }
+
 
 
 
@@ -1453,6 +1499,8 @@ class GameProvider extends ChangeNotifier{
         // Delete the game from availableGames and runningGames
         // await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
         // await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+        // Delete the game from runningGames
+        await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
 
       } else {
         print('Document not found: ${docRef.path}');
@@ -1709,7 +1757,7 @@ class GameProvider extends ChangeNotifier{
     }
 
     if (capturedPiece.isNotEmpty) {
-      specialMove = 'X';
+      specialMove = 'x';
     }
 
     if (movedPiece == '♔' || movedPiece == '♚') {
@@ -1724,8 +1772,14 @@ class GameProvider extends ChangeNotifier{
       }
     }
 
-    if (!afterBoard.contains('K') || !afterBoard.contains('k')) {
+    // Check for check and checkmate manually
+    bool isInCheck = isKingInCheck(afterFen);
+    bool isCheckmate = isInCheck && isKingInCheckmate(afterFen);
+
+    if (isCheckmate) {
       specialMove = '#';
+    } else if (isInCheck) {
+      specialMove = '+';
     }
 
     return {
@@ -1735,6 +1789,193 @@ class GameProvider extends ChangeNotifier{
     };
   }
 
+  bool isKingInCheck(String fen) {
+    // Expand the FEN notation into a board representation
+    List<String> rows = fen.split(' ')[0].split('/');
+    String expandFenRow(String row) {
+      String expandedRow = '';
+      for (int i = 0; i < row.length; i++) {
+        if (int.tryParse(row[i]) != null) {
+          expandedRow += '1' * int.parse(row[i]);
+        } else {
+          expandedRow += row[i];
+        }
+      }
+      return expandedRow;
+    }
+    rows = rows.map(expandFenRow).toList();
+
+    // Determine which player's king is being checked
+    bool whiteToMove = fen.split(' ')[1] == 'w';
+    String king = whiteToMove ? 'k' : 'K';
+    String opponentColor = whiteToMove ? 'b' : 'w';
+
+    // Find the king's position
+    int kingRank = -1, kingFile = -1;
+    for (int rank = 0; rank < 8; rank++) {
+      for (int file = 0; file < 8; file++) {
+        if (rows[rank][file] == king) {
+          kingRank = rank;
+          kingFile = file;
+          break;
+        }
+      }
+      if (kingRank != -1) break;
+    }
+
+    if (kingRank == -1 || kingFile == -1) {
+      return false;
+    }
+
+    // Check if the king is attacked by any of the opponent's pieces
+    List<List<int>> directions = [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1], /*K*/ [0, 1],
+      [1, -1], [1, 0], [1, 1],
+    ];
+    for (List<int> direction in directions) {
+      int rank = kingRank + direction[0];
+      int file = kingFile + direction[1];
+      if (rank >= 0 && rank < 8 && file >= 0 && file < 8) {
+        String piece = rows[rank][file];
+        if (piece != '1' && isOpponentPiece(piece, opponentColor) && canAttackKing(piece, direction)) {
+          return true;
+        }
+      }
+    }
+
+    // Check for knight attacks
+    List<List<int>> knightMoves = [
+      [-2, -1], [-2, 1],
+      [-1, -2], [-1, 2],
+      [1, -2], [1, 2],
+      [2, -1], [2, 1]
+    ];
+    for (List<int> move in knightMoves) {
+      int rank = kingRank + move[0];
+      int file = kingFile + move[1];
+      if (rank >= 0 && rank < 8 && file >= 0 && file < 8) {
+        String piece = rows[rank][file];
+        if (piece.toLowerCase() == 'n' && isOpponentPiece(piece, opponentColor)) {
+          return true;
+        }
+      }
+    }
+
+    // Additional checks for pawns, rooks, bishops, and queens
+    // ... (implement additional piece checks similar to above)
+
+    return false;
+  }
+
+  bool isKingInCheckmate(String fen) {
+    // Expand the FEN notation into a board representation
+    List<String> rows = fen.split(' ')[0].split('/');
+    String expandFenRow(String row) {
+      String expandedRow = '';
+      for (int i = 0; i < row.length; i++) {
+        if (int.tryParse(row[i]) != null) {
+          expandedRow += '1' * int.parse(row[i]);
+        } else {
+          expandedRow += row[i];
+        }
+      }
+      return expandedRow;
+    }
+    rows = rows.map(expandFenRow).toList();
+
+    // Determine which player's king is being checked
+    bool whiteToMove = fen.split(' ')[1] == 'w';
+    String king = whiteToMove ? 'k' : 'K';
+    String ownColor = whiteToMove ? 'w' : 'b';
+
+    // Find the king's position
+    int kingRank = -1, kingFile = -1;
+    for (int rank = 0; rank < 8; rank++) {
+      for (int file = 0; file < 8; file++) {
+        if (rows[rank][file] == king) {
+          kingRank = rank;
+          kingFile = file;
+          break;
+        }
+      }
+      if (kingRank != -1) break;
+    }
+
+    if (kingRank == -1 || kingFile == -1) {
+      return false;
+    }
+
+    // Generate all possible moves for the king and check if any move can remove the check
+    List<List<int>> directions = [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1], /*K*/ [0, 1],
+      [1, -1], [1, 0], [1, 1],
+    ];
+    for (List<int> direction in directions) {
+      int newRank = kingRank + direction[0];
+      int newFile = kingFile + direction[1];
+      if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
+        String piece = rows[newRank][newFile];
+        if (piece == '1' || isOpponentPiece(piece, ownColor)) {
+          String testFen = replaceFenPiece(rows, kingRank, kingFile, newRank, newFile, king);
+          if (!isKingInCheck(testFen)) {
+            return false;
+          }
+        }
+      }
+    }
+
+    // Additional checks for other possible moves to remove the check
+    // ... (implement additional piece move generation similar to above)
+
+    return true;
+  }
+
+  bool isOpponentPiece(String piece, String opponentColor) {
+    return (opponentColor == 'w' && piece.toLowerCase() == piece) || (opponentColor == 'b' && piece.toUpperCase() == piece);
+  }
+
+  bool canAttackKing(String piece, List<int> direction) {
+    switch (piece.toLowerCase()) {
+      case 'q':
+        return true;
+      case 'r':
+        return direction[0] == 0 || direction[1] == 0;
+      case 'b':
+        return direction[0] != 0 && direction[1] != 0;
+      case 'k':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  String replaceFenPiece(List<String> rows, int fromRank, int fromFile, int toRank, int toFile, String piece) {
+    String newRow(int rank, int file, String newPiece) {
+      String row = rows[rank];
+      row = row.substring(0, file) + newPiece + row.substring(file + 1);
+      return row;
+    }
+    rows[fromRank] = newRow(fromRank, fromFile, '1');
+    rows[toRank] = newRow(toRank, toFile, piece);
+    return rows.join('/');
+  }
+
+  void testMoves() {
+    List<String> testMoves = [
+      '♘c3', '♞c6', 'e4', '♞xe4', 'O-O', 'O-O-O', '♕h5+', '♔e1#', 'h6', 'f5', 'g5'
+    ];
+    for (String move in testMoves) {
+      bool isValid = isValidMove(move);
+      print("Move: $move is valid: $isValid");
+    }
+  }
+
+// Call this function somewhere in your code to test
+
+
+
 
 
 
@@ -1743,8 +1984,9 @@ class GameProvider extends ChangeNotifier{
     final piece = moveDetails['movedPiece'] ?? '';
     final specialMove = moveDetails['specialMove'] ?? '';
     final capturedPiece = moveDetails['capturedPiece'] ?? '';
+    print("special move $specialMove");
 
-    if (specialMove == 'X' && capturedPiece.isNotEmpty) {
+    if (specialMove == 'x' && capturedPiece.isNotEmpty) {
       return '$capturedPiece$specialMove$move';
     } else if (specialMove == 'O-O' || specialMove == 'O-O-O' || specialMove == '#') {
       return '$piece$specialMove';
@@ -1775,7 +2017,7 @@ class GameProvider extends ChangeNotifier{
     'r': '♜',
     'b': '♝',
     'n': '♞',
-    'p': '♟︎',
+    'p': '♟',
   };
 
   // Function to get the icon for a piece
@@ -1784,7 +2026,7 @@ class GameProvider extends ChangeNotifier{
   }
 
 
-
+//TODO check tom
 
 
 
