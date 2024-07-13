@@ -1,8 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:squares/squares.dart';
-// Define a type alias for CustomBoardState
-typedef BoardState = CustomBoardState;
-
 
 /// A representation of a state of a board.
 /// Stores the contents of each square in [board], the [turn] to move,

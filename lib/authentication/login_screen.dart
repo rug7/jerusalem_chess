@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _loadTranslations() async {
     final language = _themeLanguageProvider.currentLanguage;
     final jsonContent = await loadTranslations(language);
-    if(mounted){
+    if (mounted) {
       setState(() {
         _translations = jsonContent;
       });
@@ -91,30 +91,16 @@ class _LoginScreenState extends State<LoginScreen> {
         UserCredential? userCredential;
 
         if (isEnteringPhone) {
-          // Check if the entered phone number matches the one in Firestore
-          bool phoneNumberMatches = await authProvider.checkPhoneNumberMatch(phoneNumber);
+          // Proceed with signing in with phone number and password
+          userCredential = await authProvider.signInWithPhoneNumberAndPassword(
+            phoneNumber: phoneNumber,
+            password: password,
+          );
 
-          if (!phoneNumberMatches) {
-            authProvider.showSnackBar(context: context, content: 'Phone number does not match', color: Colors.red);
+          if (userCredential == null) {
+            authProvider.showSnackBar(context: context, content: 'Phone number or password is incorrect', color: Colors.red);
             return;
           }
-
-          // Proceed with signing in with phone number
-          await authProvider.signInWithPhoneNumber(
-            phoneNumber: phoneNumber,
-            verificationCompleted: (PhoneAuthCredential credential) async {
-              // Handle verification completed
-              await authProvider.firebaseAuth.signInWithCredential(credential);
-            },
-            verificationFailed: (FirebaseAuthException e) {
-              // Handle verification failed, show error message
-              authProvider.showSnackBar(context: context, content: e.message ?? 'Verification failed', color: Colors.red);
-            },
-            codeAutoRetrievalTimeout: (String verificationId) {
-              // Handle code auto retrieval timeout
-              authProvider.showSnackBar(context: context, content: 'Code Auto Retrieval Timeout', color: Colors.red);
-            },
-          );
         } else {
           // Sign in with email and password
           userCredential = await authProvider.signInUserWithEmailAndPassword(
@@ -159,6 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
       authProvider.showSnackBar(context: context, content: getTranslation('fillFields', _translations), color: Colors.red);
     }
   }
+
   void navigate({required bool isSignedIn}) {
     if (isSignedIn) {
       Navigator.pushAndRemoveUntil(
@@ -168,6 +155,45 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
     // Else handle navigation for non-signed-in case
+  }
+
+  void _showPasswordResetDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String resetEmail = '';
+        return AlertDialog(
+          title: Text(getTranslation('forgotPass', _translations)),
+          content: TextFormField(
+            decoration: InputDecoration(
+              labelText: getTranslation('yourEmail', _translations),
+              hintText: getTranslation('yourEmail', _translations),
+            ),
+            onChanged: (value) {
+              resetEmail = value.trim();
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(getTranslation('cancel', _translations)),
+            ),
+            TextButton(
+              onPressed: () {
+                if (resetEmail.isNotEmpty) {
+                  final authProvider = context.read<AuthenticationProvider>();
+                  authProvider.sendPasswordResetEmail(resetEmail);
+                  Navigator.pop(context);
+                }
+              },
+              child: Text(getTranslation('send', _translations)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -302,9 +328,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        //forgot password method and page
-                      },
+                      onPressed: _showPasswordResetDialog,
                       child: Text(
                         getTranslation('forgotPass', _translations),
                         style: const TextStyle(color: Color(0xff4e3c96)),
@@ -320,9 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   )
                       : MainAuthButton(
                     label: getTranslation('login', _translations),
-                    onPressed: () {
-                      signInUser();
-                    },
+                    onPressed: signInUser,
                     fontSize: 20,
                   ),
                   const SizedBox(height: 15),

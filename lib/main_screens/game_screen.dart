@@ -931,6 +931,7 @@ class _GameScreenState extends State<GameScreen> {
     print("Human Move Details: ${moveDetails['movedPiece']} ${moveDetails['specialMove']} ${moveDetails['capturedPiece']}");
 
     final newMove = convertMoveFormat(move.toString()).split('-')[1];
+
     if (result) {
       gameProvider.setSquaresState().whenComplete(() async {
         if (gameProvider.player == Squares.white) {
@@ -951,6 +952,7 @@ class _GameScreenState extends State<GameScreen> {
               afterFen: afterFen,
             );
           }
+          updateMoveList(moveDetails, newMove);
         } else {
           if (gameProvider.vsComputer) {
             gameProvider.pauseBlackTimer();
@@ -968,11 +970,12 @@ class _GameScreenState extends State<GameScreen> {
               afterFen: afterFen,
             );
           }
+          updateMoveList(moveDetails, newMove);
         }
-        updateMoveList(moveDetails, newMove);
         print('moves: $moveList');
       });
     }
+
     if (gameProvider.vsComputer) {
       if (gameProvider.state.state == PlayState.theirTurn && !gameProvider.aiThinking) {
         gameProvider.setAiThinking(true);
@@ -988,6 +991,7 @@ class _GameScreenState extends State<GameScreen> {
     await Future.delayed(const Duration(seconds: 1));
     checkGameOverListener();
   }
+
 
 
 

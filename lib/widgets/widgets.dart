@@ -1,13 +1,7 @@
-import 'package:bishop/bishop.dart' as bishop;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
-import '../providers/custom_board_provider.dart';
-import '../providers/custom_board_state.dart';
-import '../providers/custom_board_theme.dart';
-import '../providers/custom_piece_set.dart';
-import '../providers/game_provider.dart';
 import '../providers/theme_language_provider.dart';
 
 class PlayerColorRadiobutton extends StatelessWidget {
@@ -183,6 +177,4 @@ class HaveAccountWidget extends StatelessWidget {
 showSnackBar({required BuildContext context , required String content}){
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(content)));
 }
-
-
 

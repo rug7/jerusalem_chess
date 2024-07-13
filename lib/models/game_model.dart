@@ -22,7 +22,7 @@ class GameModel{
   List<Move> moves;
 
   GameModel({
-   required this.gameId,
+    required this.gameId,
     required this.gameCreatorUid,
     required this.gameCreatorName,
     required this.userId,
@@ -68,24 +68,24 @@ class GameModel{
 
   factory GameModel.fromMap(Map<String,dynamic>map){
     return GameModel(
-        gameId: map[Constants.gameId] ?? '',
-        gameCreatorUid: map[Constants.gameCreatorUid] ?? '',
-        gameCreatorName: map[Constants.gameCreatorName] ?? '',
-        userId: map[Constants.userId] ?? '',
-        userName: map[Constants.userName] ?? '',
-        positionFen: map[Constants.positionFen] ?? '',
-        winnerId: map[Constants.winnerId] ?? '',
-        whitesTime: map[Constants.whitesTime] ?? '',
-        blacksTime: map[Constants.blacksTime] ?? '',
-        whitesCurrentMove: map[Constants.whitesCurrentMove] ?? '',
-        blacksCurrentMove: map[Constants.blacksCurrentMove] ?? '',
-        boardState: map[Constants.boardState] ?? '',
-        playState: map[Constants.playState] ?? '',
-        dateCreated: map[Constants.dateCreated] ?? '',
-        isWhitesTurn: map[Constants.isWhitesTurn] ?? false,
-        isGameOver: map[Constants.isGameOver] ?? false,
-        squareState: map[Constants.squareState] ?? 0,
-        moves: List<Move>.from(map[Constants.moves] ?? []),
+      gameId: map[Constants.gameId] ?? '',
+      gameCreatorUid: map[Constants.gameCreatorUid] ?? '',
+      gameCreatorName: map[Constants.gameCreatorName] ?? '',
+      userId: map[Constants.userId] ?? '',
+      userName: map[Constants.userName] ?? '',
+      positionFen: map[Constants.positionFen] ?? '',
+      winnerId: map[Constants.winnerId] ?? '',
+      whitesTime: map[Constants.whitesTime] ?? '',
+      blacksTime: map[Constants.blacksTime] ?? '',
+      whitesCurrentMove: map[Constants.whitesCurrentMove] ?? '',
+      blacksCurrentMove: map[Constants.blacksCurrentMove] ?? '',
+      boardState: map[Constants.boardState] ?? '',
+      playState: map[Constants.playState] ?? '',
+      dateCreated: map[Constants.dateCreated] ?? '',
+      isWhitesTurn: map[Constants.isWhitesTurn] ?? false,
+      isGameOver: map[Constants.isGameOver] ?? false,
+      squareState: map[Constants.squareState] ?? 0,
+      moves: List<Move>.from(map[Constants.moves] ?? []),
     );
   }
 

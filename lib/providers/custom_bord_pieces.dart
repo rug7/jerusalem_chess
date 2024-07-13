@@ -105,6 +105,8 @@ class _CustomBoardPiecesState extends State<CustomBoardPieces> {
     int id = widget.size.square(rank, file, widget.state.orientation);
     String symbol =
     widget.state.board.length > id ? widget.state.board[id] : '';
+
+
     Widget piece = symbol.isNotEmpty
         ? widget.pieceSet.piece(context, symbol)
         : Container();
