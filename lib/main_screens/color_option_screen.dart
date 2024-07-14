@@ -42,6 +42,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         translations = value;
       });
     });
+
   }
 
   PlayerColor playerColorGroup = PlayerColor.white;

@@ -29,19 +29,35 @@ class AuthenticationProvider extends ChangeNotifier {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 
-  //create user with email and password
+
+  // Create user with email and password
+  // Create user with email and password
   Future<UserCredential?> createUserWithEmailAndPassword({
     required String email,
     required String password,
+    required String phoneNumber, // Add phone number parameter
   }) async {
     _isLoading = true;
     notifyListeners();
     UserCredential userCredential = await firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
     _uid = userCredential.user!.uid;
-    notifyListeners();
 
+    // Store user data in Firestore
+    await firebaseFirestore.collection(Constants.users).doc(_uid).set({
+      'email': email,
+      'phoneNumber': phoneNumber, // Store phone number in Firestore
+      // other fields...
+    });
+
+    // Also store user data locally
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString('user_email_$phoneNumber', email); // Store email with phone number as key
+
+    notifyListeners();
     return userCredential;
   }
+
+
 
   //log in user with email and password
   Future<UserCredential?> signInUserWithEmailAndPassword({
@@ -236,6 +252,8 @@ class AuthenticationProvider extends ChangeNotifier {
     return user != null;
   }
 
+
+
   Future<UserCredential?> signInWithPhoneNumberAndPassword({
     required String phoneNumber,
     required String password,
@@ -243,14 +261,16 @@ class AuthenticationProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      // Query Firestore to find the user with the provided phone number
+      // Sign in the user anonymously to ensure authentication
+      await firebaseAuth.signInAnonymously();
+
+      // Perform Firestore query to get the user's email by phone number
       QuerySnapshot querySnapshot = await firebaseFirestore
           .collection(Constants.users)
           .where('phoneNumber', isEqualTo: phoneNumber)
           .get();
 
       if (querySnapshot.docs.isEmpty) {
-        // No user found with this phone number
         _isLoading = false;
         notifyListeners();
         return null;
@@ -268,7 +288,6 @@ class AuthenticationProvider extends ChangeNotifier {
 
       _uid = userCredential.user!.uid;
       notifyListeners();
-
       return userCredential;
     } on FirebaseAuthException catch (e) {
       _isLoading = false;
@@ -282,12 +301,49 @@ class AuthenticationProvider extends ChangeNotifier {
     }
   }
 
+
+
+
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await firebaseAuth.sendPasswordResetEmail(email: email);
       //showSnackBar(context: context, content: 'Password reset email sent.', color: Colors.green);
     } catch (e) {
       //showSnackBar(context: context, content: 'Error: $e', color: Colors.red);
+    }
+  }
+
+  Future<bool> changePassword({required String oldPassword, required String newPassword}) async {
+    try {
+      final user = firebaseAuth.currentUser;
+      final email = user?.email;
+
+      if (email == null) return false;
+
+      // Reauthenticate user
+      final credential = EmailAuthProvider.credential(email: email, password: oldPassword);
+      await user?.reauthenticateWithCredential(credential);
+
+      // Update password
+      await user?.updatePassword(newPassword);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> changeName({required String newName}) async {
+    try {
+      final user = firebaseAuth.currentUser;
+      if (user == null) return;
+
+      await firebaseFirestore.collection(Constants.users).doc(user.uid).update({'name': newName});
+
+      // Update local user model
+      _userModel?.name = newName;
+      notifyListeners();
+    } catch (e) {
+      print('Failed to update name: $e');
     }
   }
 }

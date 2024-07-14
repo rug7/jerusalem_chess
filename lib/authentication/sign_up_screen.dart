@@ -228,11 +228,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // }
 
   // signUp user in fireStore
+  // signUp user in fireStore
   void signUpUser() async {
     final authProvider = context.read<AuthenticationProvider>();
 
     if (formKey.currentState!.validate()) {
-      // Save the form
       formKey.currentState!.save();
 
       if (password != confirmPassword) {
@@ -241,23 +241,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       try {
-        // Set loading state to true
         authProvider.setIsLoading(value: true);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const LoadingScreen()),
         );
-        // Set loading state to true
 
         UserCredential? userCredential = await authProvider.createUserWithEmailAndPassword(
           email: email,
           password: password,
+          phoneNumber: phoneNumber, // Pass the phone number
         );
 
         if (userCredential != null) {
-          // User created - save to firestore
-          //print('User created: ${userCredential.user!.uid}');
-
           UserModel userModel = UserModel(
             uid: userCredential.user!.uid,
             name: name,
@@ -265,75 +261,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
             image: '',
             createdAt: '',
             playerRating: 700,
-            phoneNumber: phoneNumber
+            phoneNumber: phoneNumber, // Save the phone number
           );
 
           authProvider.saveUserDataToFireStore(
             currentUser: userModel,
             fileImage: finalFileImage,
             onSuccess: () async {
-
-
               formKey.currentState!.reset();
-              // Save user data to shared preferences
               await authProvider.saveUserDataToSharedPref();
-
-              // Set the signed-in state
               await authProvider.setSignedIn();
-
-              // Sign out the user and navigate to the login screen
-              authProvider.showSnackBar(context: context, content: getTranslation('signUpSuccess', _translations),color: Colors.green);
-
+              authProvider.showSnackBar(context: context, content: getTranslation('signUpSuccess', _translations), color: Colors.green);
               authProvider.setIsLoading(value: false);
-
-              // Navigate to the home screen
               navigateToHome();
             },
             onFail: (error) {
-              // Show error snackbar
-              authProvider.showSnackBar(context: context, content: error.toString(),color: Colors.red);
-              // Pop the loading screen
+              authProvider.showSnackBar(context: context, content: error.toString(), color: Colors.red);
               Navigator.pop(context);
-
-              // Set loading state to false
               authProvider.setIsLoading(value: false);
             },
           );
         }
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
-          authProvider.setIsLoading(value: false);
-          Navigator.pop(context);
-          // Handle the case where the user's email already exists
-          authProvider.showSnackBar(context: context, content: getTranslation('emailAuth', _translations),color: Colors.red);
-
-        } else {
-          // Set loading state to false
-          authProvider.setIsLoading(value: false);
-
-          // Pop the loading screen
-          Navigator.pop(context);
-          // Handle other FirebaseAuthExceptions
-          authProvider.showSnackBar(context: context, content: '${getTranslation('signUpAuth',_translations)} ${e.message}',color: Colors.red);
-        }
-      } catch (e) {
-        // Set loading state to false
         authProvider.setIsLoading(value: false);
-
-        // Pop the loading screen
         Navigator.pop(context);
-        // Handle other exceptions
-        authProvider.showSnackBar(context: context, content: '${getTranslation('signUpAuth',_translations)} $e',color: Colors.red);
+        authProvider.showSnackBar(context: context, content: getTranslation('emailAuth', _translations), color: Colors.red);
+      } catch (e) {
+        authProvider.setIsLoading(value: false);
+        Navigator.pop(context);
+        authProvider.showSnackBar(context: context, content: '${getTranslation('signUpAuth', _translations)} $e', color: Colors.red);
       } finally {
-        // Set loading state to false
         authProvider.setIsLoading(value: false);
       }
     } else {
-
-      authProvider.showSnackBar(context: context, content: getTranslation('fillFields',_translations),color: Colors.red);
+      authProvider.showSnackBar(context: context, content: getTranslation('fillFields', _translations), color: Colors.red);
     }
-
   }
+
   bool isNumeric(String input) {
     final numericRegExp = RegExp(r'^[0-9]+$');
     return numericRegExp.hasMatch(input);
@@ -563,60 +527,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
 
                   const SizedBox(height: 20,),
-            Directionality(
-              textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
-              child: Row(
-                children: [
-                  DropdownButton<String>(
-                    value: _selectedPrefix,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedPrefix = newValue!;
-                        phoneNumber = newValue; // Reset the phone number with the new prefix
-                      });
-                    },
-                    items: <String>['050', '052', '053', '054', '058']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      maxLength: 7, // Adjust as per your requirements
-                      maxLines: 1,
-                      style: TextStyle(color: oppColor),
-                      textAlign: textAlignCheck,
-                      // Remove textDirection: textDirectionCheck, as it's handled by Directionality
-                      decoration: textFormDecoration.copyWith(
-                        counterText: '',
-                        labelText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
-                        hintText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
-                      ),
-                      validator: (value) {
-                        // Add validation logic as needed
-                        if (value == null || value.isEmpty || value.length < 7||!isNumeric(value)) {
-                          return getTranslation('invalidPhoneNumber', _translations); // Translate this as needed
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          phoneNumber = _selectedPrefix + value;
-
-                        });
-                      },
+                  Directionality(
+                    textDirection: TextDirection.ltr, // Always LTR for the overall Row direction
+                    child: Row(
+                      children: [
+                        DropdownButton<String>(
+                          value: _selectedPrefix,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedPrefix = newValue!;
+                              phoneNumber = newValue; // Reset the phone number with the new prefix
+                            });
+                          },
+                          items: <String>['050', '052', '053', '054', '058']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                        Expanded(
+                          child: Directionality(
+                            textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                            child: TextFormField(
+                              textInputAction: TextInputAction.next,
+                              maxLength: 7, // Adjust as per your requirements
+                              maxLines: 1,
+                              style: TextStyle(color: oppColor),
+                              textAlign: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextAlign.right : TextAlign.left,
+                              decoration: textFormDecoration.copyWith(
+                                counterText: '',
+                                labelText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                                hintText: getTranslation('enteryourphonenumber', _translations), // Translate this as needed
+                              ),
+                              validator: (value) {
+                                // Add validation logic as needed
+                                if (value == null || value.isEmpty || value.length < 7 || !isNumeric(value)) {
+                                  return getTranslation('invalidPhoneNumber', _translations); // Translate this as needed
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  phoneNumber = _selectedPrefix + value;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
 
 
-            const SizedBox(height: 20,),
+
+                  const SizedBox(height: 20,),
 
                   Directionality(
                     textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,

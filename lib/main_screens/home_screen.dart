@@ -41,9 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadTranslations() async {
     final language = _themeLanguageProvider.currentLanguage; // Use _themeLanguageProvider here
     final jsonContent = await loadTranslations(language);
-    setState(() {
-      _translations = jsonContent;
-    });
+    if(mounted){
+      setState(() {
+        _translations = jsonContent;
+      });
+    }
   }
 
   @override
@@ -120,76 +122,83 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.count(
-          shrinkWrap: true,
-          crossAxisCount: 2,
-          children: [
-            buildGameType(
-              label: getTranslation('playAgainstComputer', _translations),
-              icon: Icons.computer,
-              onTap: () {
-                gameProvider.setVsComputer(value: true);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameTimeScreen()),
-                );
-              },
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final itemHeight = (constraints.maxHeight - 32) / 3; // 3 rows with padding
+          final itemWidth = (constraints.maxWidth - 16) / 2; // 2 columns with padding
+
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GridView.count(
+              crossAxisCount: 2,
+              childAspectRatio: itemWidth / itemHeight,
+              children: [
+                buildGameType(
+                  label: getTranslation('playAgainstComputer', _translations),
+                  icon: Icons.computer,
+                  onTap: () {
+                    gameProvider.setVsComputer(value: true);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GameTimeScreen()),
+                    );
+                  },
+                ),
+                buildGameType(
+                  label: getTranslation('multiplayer', _translations),
+                  icon: Icons.group,
+                  onTap: () {
+                    gameProvider.setVsComputer(value: false);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GameTimeScreen()),
+                    );
+                  },
+                ),
+                buildGameType(
+                  label: getTranslation('gameHistory', _translations),
+                  icon: Icons.history,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GameHistoryScreen()),
+                    );
+                  },
+                ),
+                buildGameType(
+                  label: getTranslation('settings', _translations),
+                  icon: Icons.settings,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
+                  },
+                ),
+                buildGameType(
+                  label: getTranslation('news', _translations), // New "News" option
+                  icon: Icons.newspaper,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NewsScreen()), // Navigate to NewsScreen
+                    );
+                  },
+                ),
+                buildGameType(
+                  label: getTranslation('communication', _translations), // New "Connect" option
+                  icon: Icons.message,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CommunicationScreen()), // Navigate to ConnectScreen
+                    );
+                  },
+                ),
+              ],
             ),
-            buildGameType(
-              label: getTranslation('multiplayer', _translations),
-              icon: Icons.group,
-              onTap: () {
-                gameProvider.setVsComputer(value: false);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameTimeScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('gameHistory', _translations),
-              icon: Icons.history,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameHistoryScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('settings', _translations),
-              icon: Icons.settings,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('news', _translations), // New "News" option
-              icon: Icons.newspaper,
-              onTap: () {
-               Navigator.push(
-                 context,
-                  MaterialPageRoute(builder: (context) => const NewsScreen()), // Navigate to NewsScreen
-               );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('communication', _translations), // New "Connect" option
-              icon: Icons.message,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CommunicationScreen()), // Navigate to ConnectScreen
-                );
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

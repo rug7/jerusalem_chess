@@ -130,6 +130,124 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _changePassword(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final oldPasswordController = TextEditingController();
+        final newPasswordController = TextEditingController();
+        final authProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+
+        return AlertDialog(
+          title: Text(getTranslation('changePassword', translations)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldPasswordController,
+                decoration: InputDecoration(labelText: getTranslation('oldPassword', translations)),
+                obscureText: true,
+              ),
+              TextField(
+                controller: newPasswordController,
+                  decoration: InputDecoration(labelText: getTranslation('newPassword', translations)),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(getTranslation('cancel', translations)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final oldPassword = oldPasswordController.text;
+                final newPassword = newPasswordController.text;
+                final success = await authProvider.changePassword(oldPassword: oldPassword, newPassword: newPassword);
+
+                if (success) {
+                  Navigator.of(context).pop();
+                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordsuccess', translations),color: Colors.green);
+                } else {
+                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordfailed"', translations), color: Colors.red);
+                }
+              },
+              child: Text(getTranslation('change', translations)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _changeName(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final nameController = TextEditingController();
+        final authProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+
+        return AlertDialog(
+          title: Text(getTranslation('changeName', translations)),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(labelText: getTranslation('newName', translations)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(getTranslation('cancel', translations)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newName = nameController.text;
+                await authProvider.changeName(newName: newName);
+                Navigator.of(context).pop();
+
+                authProvider.showSnackBar(context: context, content: getTranslation('changeNameSuccess', translations),color: Colors.green);
+              },
+              child: Text(getTranslation('change', translations)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showPrivacySecurityDialog() {
+    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(getTranslation('privacy&security', translations), style: TextStyle(color: textColor)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock),
+                title: Text(getTranslation('changePassword', translations), style: TextStyle(color: textColor)),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog before showing another dialog
+                  _changePassword(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(getTranslation('changeName', translations), style: TextStyle(color: textColor)),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog before showing another dialog
+                  _changeName(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
@@ -254,7 +372,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Add help/support functionality
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.notifications),
             title: Text(getTranslation('notifications', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
@@ -264,12 +381,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.security),
-            title: Text(getTranslation('privacySecurity', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
+            title: Text(getTranslation('privacy&security', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
             onTap: () {
               showPrivacySecurityDialog();
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.logout),
             title: Text(getTranslation('signOut', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
@@ -287,39 +403,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-
-    );
-  }
-  void showPrivacySecurityDialog() {
-    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(getTranslation('Privacy & Security', translations), style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.lock),
-                title: Text('Change Password', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
-                onTap: () {
-                  // Implement password change functionality
-                  Navigator.pop(context); // Close the dialog after action
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.security),
-                title: Text('Two-Factor Authentication', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700)),
-                onTap: () {
-                  // Implement two-factor authentication settings
-                  Navigator.pop(context); // Close the dialog after action
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -445,5 +528,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       print('Error deleting image: $e');
     }
+  }
+
+  String getTranslation(String key, Map<String, dynamic> translations) {
+    return translations[key] ?? key;
   }
 }

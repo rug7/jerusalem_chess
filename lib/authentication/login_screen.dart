@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late String phoneNumber;
   bool obscureText = true;
   bool isEnteringPhone = false; // Track if entering phone number
+  String _selectedPrefix = '050'; // Default initial value
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -91,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
         UserCredential? userCredential;
 
         if (isEnteringPhone) {
-          // Proceed with signing in with phone number and password
           userCredential = await authProvider.signInWithPhoneNumberAndPassword(
             phoneNumber: phoneNumber,
             password: password,
@@ -102,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
         } else {
-          // Sign in with email and password
           userCredential = await authProvider.signInUserWithEmailAndPassword(
             email: email,
             password: password,
@@ -110,7 +109,6 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
         if (userCredential != null) {
-          // Handle success, navigate to home or other screen
           bool userExists = await authProvider.checkUserExists();
 
           if (userExists) {
@@ -122,26 +120,17 @@ class _LoginScreenState extends State<LoginScreen> {
             authProvider.setIsLoading(value: false);
             navigate(isSignedIn: true);
           } else {
-            // Handle case where user does not exist (optional)
             authProvider.showSnackBar(context: context, content: 'User does not exist', color: Colors.red);
           }
         }
       } on FirebaseAuthException catch (e) {
-        // Handle FirebaseAuthException for email/password sign-in
-        if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-          authProvider.showSnackBar(context: context, content: getTranslation('incEmailOrPass', _translations), color: Colors.red);
-        } else {
-          authProvider.showSnackBar(context: context, content: getTranslation('incEmailOrPass', _translations), color: Colors.red);
-        }
-
+        authProvider.showSnackBar(context: context, content: getTranslation('incEmailOrPass', _translations), color: Colors.red);
         authProvider.setIsLoading(value: false);
       } catch (e) {
-        // Handle other errors
         authProvider.showSnackBar(context: context, content: '${getTranslation('errorOccurred', _translations)} $e', color: Colors.red);
         authProvider.setIsLoading(value: false);
       }
     } else {
-      // Form validation failed
       authProvider.showSnackBar(context: context, content: getTranslation('fillFields', _translations), color: Colors.red);
     }
   }
@@ -196,6 +185,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  bool isNumeric(String input) {
+    final numericRegExp = RegExp(r'^[0-9]+$');
+    return numericRegExp.hasMatch(input);
+  }
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
@@ -261,33 +254,82 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: oppColor, fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
-                  Directionality(
-                    textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      maxLines: 1,
-                      style: TextStyle(color: oppColor),
-                      decoration: textFormDecoration.copyWith(
-                        labelText: isEnteringPhone ? getTranslation('enteryourphonenumber', _translations) : getTranslation('yourEmail', _translations),
-                        hintText: isEnteringPhone ? getTranslation('enteryourphonenumber', _translations) : getTranslation('yourEmail', _translations),
+                  if (isEnteringPhone) // Only show this part when entering phone number
+                    Directionality(
+                      textDirection: TextDirection.ltr, // Always LTR for the overall Row direction
+                      child: Row(
+                        children: [
+                          DropdownButton<String>(
+                            value: _selectedPrefix,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedPrefix = newValue!;
+                                phoneNumber = newValue; // Reset the phone number with the new prefix
+                              });
+                            },
+                            items: <String>['050', '052', '053', '054', '058']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          ),
+                          Expanded(
+                            child: Directionality(
+                              textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                              child: TextFormField(
+                                textInputAction: TextInputAction.next,
+                                maxLength: 7,
+                                maxLines: 1,
+                                style: TextStyle(color: oppColor),
+                                textAlign: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextAlign.right : TextAlign.left,
+                                decoration: textFormDecoration.copyWith(
+                                  counterText: '',
+                                  labelText: getTranslation('enteryourphonenumber', _translations),
+                                  hintText: getTranslation('enteryourphonenumber', _translations),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty || value.length < 7 || !isNumeric(value)) {
+                                    return getTranslation('invalidPhoneNumber', _translations);
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  setState(() {
+                                    phoneNumber = _selectedPrefix + value;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return isEnteringPhone ? getTranslation('invalidPhoneNumber', _translations) : getTranslation('emailValidator', _translations);
-                        } else if (!isEnteringPhone && !validateEmail(value)) {
-                          return getTranslation('emailNotValid', _translations);
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        if (isEnteringPhone) {
-                          phoneNumber = value.trim();
-                        } else {
-                          email = value.trim();
-                        }
-                      },
                     ),
-                  ),
+                  if (!isEnteringPhone) // Only show this part when entering email
+                    Directionality(
+                      textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
+                      child: TextFormField(
+                        textInputAction: TextInputAction.next,
+                        maxLines: 1,
+                        style: TextStyle(color: oppColor),
+                        decoration: textFormDecoration.copyWith(
+                          labelText: getTranslation('yourEmail', _translations),
+                          hintText: getTranslation('yourEmail', _translations),
+                        ),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return getTranslation('emailValidator', _translations);
+                          } else if (!validateEmail(value)) {
+                            return getTranslation('emailNotValid', _translations);
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          email = value.trim();
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 10),
                   Directionality(
                     textDirection: _themeLanguageProvider.currentLanguage == 'Arabic' ? TextDirection.rtl : TextDirection.ltr,
