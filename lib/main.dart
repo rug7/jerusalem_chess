@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/authentication/landing_screen.dart';
 import 'package:flutter_chess_1/authentication/login_screen.dart';
 import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
+import 'package:flutter_chess_1/main_screens/educational_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
 import 'package:flutter_chess_1/main_screens/communication_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_screen.dart';
@@ -30,7 +31,7 @@ void main()async {
         ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
 
       ],
-        child: const MyApp()),
+      child: const MyApp()),
   );
 }
 
@@ -62,6 +63,8 @@ class MyApp extends StatelessWidget {
         Constants.loadingScreen: (context) => const LoadingScreen(),
         Constants.communicationScreen: (context) => const CommunicationScreen(),
         Constants.newsScreen: (context) => const NewsScreen(),
+        Constants.educationalScreen: (context) => const EducationalScreen(),
+
 
 
 

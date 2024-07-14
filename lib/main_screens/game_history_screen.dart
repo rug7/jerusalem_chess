@@ -57,7 +57,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           .get();
 
       if (userDoc.exists) {
-        if(mounted){
+        if (mounted) {
           setState(() {
             gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
             isLoading = false;
@@ -67,9 +67,9 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final gameProvider = Provider.of<GameProvider>(context);
     final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
     final backgroundColor = _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212);
 
@@ -112,58 +112,110 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           },
         ),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Table(
-            border: TableBorder.all(color: const Color(0xff4e3c96),width: 3),
-            columnWidths: const {
-              0: FlexColumnWidth(2),
-              1: FlexColumnWidth(4),
-            },
-            children: [
-              TableRow(
-                children: [
-                  TableCell(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('Opponent', style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 22)),
-                    ),
-                  ),
-                  TableCell(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('Moves', style: TextStyle(color: textColor, fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 22)),
-                    ),
-                  ),
-                ],
-              ),
-              ...gameHistory.map((game) {
-                final opponentName = game['opponentName'] ?? 'Unknown';
-                final moves = game['moves']?.join(', ') ?? 'No moves';
+      body: Consumer<GameProvider>(
+        builder: (context, gameProvider, child) {
+          if (isLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            if (gameProvider.showAnalysisBoard) {
+              return ListView.builder(
+                itemCount: gameProvider.moveHistory.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(gameProvider.moveHistory[index], style: TextStyle(color: textColor)),
+                  );
+                },
+              );
+            } else {
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Table(
+                    border: TableBorder.all(color: const Color(0xff4e3c96), width: 3),
+                    columnWidths: const {
+                      0: FlexColumnWidth(2),
+                      1: FlexColumnWidth(4),
+                      2: FlexColumnWidth(2), // Added this line for the W/L column
+                    },
+                    children: [
+                      TableRow(
+                        children: [
+                          TableCell(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('Ops', style: TextStyle(color: textColor,
+                                  fontFamily: 'IBM Plex Sans Arabic',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22)),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('Moves', style: TextStyle(color: textColor,
+                                  fontFamily: 'IBM Plex Sans Arabic',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22)),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('W/L', style: TextStyle(color: textColor,
+                                  fontFamily: 'IBM Plex Sans Arabic',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22)), // Added this line
+                            ),
+                          ),
+                        ],
+                      ),
+                      ...gameHistory.map((game) {
+                        final opponentName = game['opponentName'] ?? 'Unknown';
+                        final moves = game['moves']?.join(', ') ?? 'No moves';
+                        final result = game['result'] == 'win'
+                            ? 'W'
+                            : 'L'; // Assuming game has a 'result' field with 'win' or 'lose'
 
-                return TableRow(
-                  children: [
-                    TableCell(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(opponentName, style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 18)),
-                      ),
-                    ),
-                    TableCell(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(moves, style: TextStyle(color: textColor,fontFamily: 'IBM Plex Sans Arabic', fontWeight: FontWeight.w700,fontSize: 18)),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ],
-          ),
-        ),
+                        return TableRow(
+                          children: [
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(opponentName, style: TextStyle(
+                                    color: textColor,
+                                    fontFamily: 'IBM Plex Sans Arabic',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18)),
+                              ),
+                            ),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(moves, style: TextStyle(color: textColor,
+                                    fontFamily: 'IBM Plex Sans Arabic',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18)),
+                              ),
+                            ),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(result, style: TextStyle(color: textColor,
+                                    fontFamily: 'IBM Plex Sans Arabic',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18)), // Added this line
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }

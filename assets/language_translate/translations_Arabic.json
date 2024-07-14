@@ -72,15 +72,21 @@
   "news": "الأخبار",
   "communication": "الاتصال",
   "enteryourphonenumber": "أدخل رقم هاتفك",
-  "invalidPhoneNumber": "يرجى إدخال رقم هاتف صالح"
+  "invalidPhoneNumber": "يرجى إدخال رقم هاتف صالح",
+
+  "changeNameSuccess": "تم تغيير الاسم بنجاح",
+  "changePasswordsuccess": "تم تغيير كلمة المرور بنجاح",
+  "changePasswordfailed": "فشل في تغيير كلمة المرور",
+  "changePassword": "تغيير كلمة المرور",
+  "changeName": "تغيير الاسم",
+  "change": "تغيير",
+  "newName": "اسم جديد",
+  "oldPassword": "كلمة المرور القديمة",
+  "newPassword": "كلمة المرور الجديدة",
+  "privacy&security": "الخصوصية والأمان",
+  "cancel": "إلغاء",
+  "send": "إرسال",
+  "edu": "الوسائل التعليمية"
+
+
 }
-
-
-
-
-
-
-
-
-
-

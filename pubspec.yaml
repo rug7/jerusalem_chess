@@ -51,6 +51,7 @@ dependencies:
   shared_preferences: ^2.2.3
   uuid: ^4.4.0
   intl: ^0.17.0
+  url_launcher: ^6.3.0
 
   equatable: any
 dev_dependencies:
@@ -96,15 +97,15 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-     - family: IBM Plex Sans Arabic
-       fonts:
-         - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-ExtraLight.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-Light.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
-         - asset: assets/fonts/IBMPlexSansArabic-Thin.ttf
+    - family: IBM Plex Sans Arabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-ExtraLight.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Light.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Thin.ttf
 
 
 

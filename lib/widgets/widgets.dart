@@ -23,20 +23,20 @@ class PlayerColorRadiobutton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RadioListTile<PlayerColor>(
-        title:Text(
-            title,
-            style: const TextStyle(
-            color: Colors.black ,
-            fontWeight: FontWeight.bold)),
-        value: value,
-        dense: true,
-        shape: RoundedRectangleBorder(
-            borderRadius:BorderRadius.circular(10)
-        ),
-        contentPadding: EdgeInsets.zero,
-        tileColor: Colors.grey[300],
-        groupValue: groupValue,
-        onChanged: onChanged,
+      title:Text(
+          title,
+          style: const TextStyle(
+              color: Colors.black ,
+              fontWeight: FontWeight.bold)),
+      value: value,
+      dense: true,
+      shape: RoundedRectangleBorder(
+          borderRadius:BorderRadius.circular(10)
+      ),
+      contentPadding: EdgeInsets.zero,
+      tileColor: Colors.grey[300],
+      groupValue: groupValue,
+      onChanged: onChanged,
       activeColor: activeColor,
     );
   }
@@ -83,7 +83,7 @@ class BuildCustomTime extends StatelessWidget {
           ),
         ),
         InkWell(
-          onTap: onRightClick,
+            onTap: onRightClick,
             child: const Icon(Icons.arrow_forward_ios)),
 
       ],
@@ -112,22 +112,22 @@ class GameLevel extends StatelessWidget {
     final capital = title[0].toUpperCase() + title.substring(1);
     return Expanded(
       child: RadioListTile<GameDifficulty>(
-          title:Text(
-            capital,
-            style: const TextStyle(
-                color: Colors.black ,
-                fontWeight: FontWeight.bold),
-          ),
-          value: value,
-          dense: true,
-          shape: RoundedRectangleBorder(
-              borderRadius:BorderRadius.circular(10)
-          ),
-          contentPadding: EdgeInsets.zero,
-          tileColor: Colors.grey[300],
-          groupValue: groupValue,
-          onChanged: onChanged,
-          activeColor: activeColor,
+        title:Text(
+          capital,
+          style: const TextStyle(
+              color: Colors.black ,
+              fontWeight: FontWeight.bold),
+        ),
+        value: value,
+        dense: true,
+        shape: RoundedRectangleBorder(
+            borderRadius:BorderRadius.circular(10)
+        ),
+        contentPadding: EdgeInsets.zero,
+        tileColor: Colors.grey[300],
+        groupValue: groupValue,
+        onChanged: onChanged,
+        activeColor: activeColor,
       ),
     );
   }
@@ -135,7 +135,7 @@ class GameLevel extends StatelessWidget {
 
 class HaveAccountWidget extends StatelessWidget {
 
-   const HaveAccountWidget({
+  const HaveAccountWidget({
     super.key,
     required this.label,
     required this.labelAction,
@@ -158,15 +158,15 @@ class HaveAccountWidget extends StatelessWidget {
         Text(label, style: TextStyle(fontSize: 16,color: textColor),textAlign: TextAlign.center,),
 
         TextButton(
-            onPressed: onPressed,
-            child: Text(
-              labelAction,
-              style: const TextStyle(
-                color: Color(0xFF663d99),
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+          onPressed: onPressed,
+          child: Text(
+            labelAction,
+            style: const TextStyle(
+              color: Color(0xFF663d99),
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
+          ),
         ),
       ],
     );
@@ -177,4 +177,3 @@ class HaveAccountWidget extends StatelessWidget {
 showSnackBar({required BuildContext context , required String content}){
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(content)));
 }
-

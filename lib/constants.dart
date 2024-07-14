@@ -16,6 +16,8 @@ class Constants {
   static const String searchingScreen = '/searchingScreen';
   static const String gameHistoryScreen = '/gameHistoryScreen';
   static const String communicationScreen = '/communicationScreen';
+  static const String educationalScreen = '/educationalScreen';
+
   static const String newsScreen = '/newsScreen';
 
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chess_1/main_screens/educational_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
 import 'package:flutter_chess_1/main_screens/communication_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
@@ -19,27 +20,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Map<String, dynamic> _translations;
-  late ThemeLanguageProvider _themeLanguageProvider; // Add this line
+  late ThemeLanguageProvider _themeLanguageProvider;
 
   @override
   void initState() {
     super.initState();
-    _translations = {}; // Initialize translations map
+    _translations = {};
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _themeLanguageProvider = context.read<ThemeLanguageProvider>(); // Initialize theme language provider
-    // Load translations when the screen initializes
+    _themeLanguageProvider = context.read<ThemeLanguageProvider>();
     _loadTranslations();
-    // Listen for changes in language and reload translations accordingly
     _themeLanguageProvider.addListener(_onLanguageChanged);
   }
 
-  // Load translations from JSON files based on the current language
   Future<void> _loadTranslations() async {
-    final language = _themeLanguageProvider.currentLanguage; // Use _themeLanguageProvider here
+    final language = _themeLanguageProvider.currentLanguage;
     final jsonContent = await loadTranslations(language);
     setState(() {
       _translations = jsonContent;
@@ -48,17 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    // Dispose the listener to avoid memory leaks
     _themeLanguageProvider.removeListener(_onLanguageChanged);
     super.dispose();
   }
 
-  // Function to handle language changes
   void _onLanguageChanged() {
-    _loadTranslations(); // Reload translations when the language changes
+    _loadTranslations();
   }
 
-  // Function to get greeting based on current time
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
@@ -74,12 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final gameProvider = context.read<GameProvider>();
     final isLightMode = _themeLanguageProvider.isLightMode;
-    final textColor = isLightMode ? Colors.white : Colors.black;
-
+    final backgroundColor = isLightMode ? Colors.white : Colors.black;
+    final textColor = isLightMode ? Colors.black : Colors.white;
     final user = context.watch<AuthenticationProvider>().userModel;
 
     return Scaffold(
-      backgroundColor: textColor,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xff4e3c96),
         title: Text(
@@ -120,75 +115,138 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.count(
-          shrinkWrap: true,
-          crossAxisCount: 2,
-          children: [
-            buildGameType(
-              label: getTranslation('playAgainstComputer', _translations),
-              icon: Icons.computer,
-              onTap: () {
-                gameProvider.setVsComputer(value: true);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameTimeScreen()),
-                );
-              },
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 2,
+                childAspectRatio: 1,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  buildGameType(
+                    label: getTranslation('playAgainstComputer', _translations),
+                    icon: Icons.computer,
+                    onTap: () {
+                      gameProvider.setVsComputer(value: true);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GameTimeScreen()),
+                      );
+                    },
+                  ),
+                  buildGameType(
+                    label: getTranslation('multiplayer', _translations),
+                    icon: Icons.group,
+                    onTap: () {
+                      gameProvider.setVsComputer(value: false);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GameTimeScreen()),
+                      );
+                    },
+                  ),
+                  buildGameType(
+                    label: getTranslation('gameHistory', _translations),
+                    icon: Icons.history,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GameHistoryScreen()),
+                      );
+                    },
+                  ),
+                  buildGameType(
+                    label: getTranslation('edu', _translations),
+                    icon: Icons.school,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const EducationalScreen()),
+                      );
+                    },
+                  ),
+                  buildGameType(
+                    label: getTranslation('news', _translations),
+                    icon: Icons.newspaper,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NewsScreen()),
+                      );
+                    },
+                  ),
+                  buildGameType(
+                    label: getTranslation('communication', _translations),
+                    icon: Icons.message,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CommunicationScreen()),
+                      );
+                    },
+                  ),
+
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                height: 150,
+                child: buildGameType(
+                  label: getTranslation('settings', _translations),
+                  icon: Icons.settings,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildGameType({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        color: const Color(0xfff0f5f7),
+        elevation: 2,
+        margin: const EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 40),
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'IBM Plex Sans Arabic',
+                  ),
+                ),
+              ],
             ),
-            buildGameType(
-              label: getTranslation('multiplayer', _translations),
-              icon: Icons.group,
-              onTap: () {
-                gameProvider.setVsComputer(value: false);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameTimeScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('gameHistory', _translations),
-              icon: Icons.history,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GameHistoryScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('settings', _translations),
-              icon: Icons.settings,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('news', _translations), // New "News" option
-              icon: Icons.newspaper,
-              onTap: () {
-               Navigator.push(
-                 context,
-                  MaterialPageRoute(builder: (context) => const NewsScreen()), // Navigate to NewsScreen
-               );
-              },
-            ),
-            buildGameType(
-              label: getTranslation('communication', _translations), // New "Connect" option
-              icon: Icons.message,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CommunicationScreen()), // Navigate to ConnectScreen
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );

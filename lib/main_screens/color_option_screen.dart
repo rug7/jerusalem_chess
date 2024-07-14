@@ -42,6 +42,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
         translations = value;
       });
     });
+
   }
 
   PlayerColor playerColorGroup = PlayerColor.white;
@@ -137,7 +138,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
 
-                      child: Padding( 
+                      child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Center(
                           child: Text(
@@ -205,7 +206,7 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                 gameProvider.vsComputer ?
                 Column(
                   children: [
-                     Padding(
+                    Padding(
                       padding:  const EdgeInsets.all(8.0),
                       child:  Text(getTranslation('difficultyText', translations),style: TextStyle(color: oppColor,fontFamily: 'IBM Plex Sans Arabic',fontWeight: FontWeight.w700),),
                     ),
@@ -341,8 +342,8 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
       }
       gameProvider.setIsLoading(value: true);
       await gameProvider.setGameTime(
-          newSavedWhiteTime: gameTime,
-          newSavedBlackTime: gameTime,
+        newSavedWhiteTime: gameTime,
+        newSavedBlackTime: gameTime,
       ).whenComplete((){
         if(gameProvider.vsComputer){
           gameProvider.setIsLoading(value: false);
@@ -372,10 +373,10 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                 }else{
                   gameProvider.setIsLoading(value: false);
                   //navigate to game screen
-                 Navigator.pushNamed(context, Constants.gameScreen);
+                  Navigator.pushNamed(context, Constants.gameScreen);
                 }
 
-          }, onFail: (error){
+              }, onFail: (error){
             gameProvider.setIsLoading(value: false);
             showSnackBar(context: context, content: error);
           });
@@ -384,7 +385,6 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
     }
   }
 }
-
 
 
 

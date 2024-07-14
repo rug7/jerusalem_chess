@@ -72,9 +72,21 @@
   "news": "News",
   "communication": "Communication",
   "enteryourphonenumber": "Enter Your Phone Number",
-  "invalidPhoneNumber": "Invalid Phone Number"
+  "invalidPhoneNumber": "Invalid Phone Number",
 
-
+  "changeNameSuccess": " Name changed successfully",
+  "changePasswordsuccess": "Password changed successfully",
+  "changePasswordfailed": "Password changed failed",
+  "changePassword": "Change Password",
+  "changeName": "Change Name",
+  "change": "Change",
+  "newName": "New Name",
+  "oldPassword": "Old Password",
+  "newPassword": "New Password",
+  "privacy&security": "Privacy & Security",
+  "cancel": "Cancel",
+  "send": "Send",
+  "edu": "Educational Tools"
 
 
 }
