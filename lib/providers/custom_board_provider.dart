@@ -122,39 +122,6 @@ class CustomBoard extends StatelessWidget {
   /// square it is on. For example, 0.05 will add 5% padding to each side.
   final double piecePadding;
 
-  ///for the h1 logo
-  final String? h1SquareImage;
-
-
-  List<Widget> _generateUnderlays(double squareSize) {
-    List<Widget> customUnderlays = List<Widget>.from(underlays); // Start with existing underlays
-
-    if (h1SquareImage != null) {
-      // Assuming h1 is at the bottom-right and boardPadding is the padding around the board
-      double leftOffset = (size.h - 1) * squareSize + 9 ; // right-most column
-      double topOffset = (size.v - 1) * squareSize + 5  ; // bottom row for white's perspective
-
-
-      // Add the SVG image widget for the h1 square
-      customUnderlays.add(
-        Positioned(
-          left: leftOffset,
-          top: topOffset,
-          child: IgnorePointer(
-            child: SvgPicture.asset(
-              h1SquareImage!,
-              width: squareSize*0.9,
-              height: squareSize*0.9,
-            ),
-          ),
-        ),
-      );
-    }
-    return customUnderlays;
-  }
-
-
-
   CustomBoard({
     super.key,
     required this.state,
@@ -187,7 +154,6 @@ class CustomBoard extends StatelessWidget {
     this.backgroundConfig = BackgroundConfig.standard,
     this.background,
     this.piecePadding = 0.0,
-    this.h1SquareImage,
   }) : markerTheme = markerTheme ?? MarkerTheme.basic;
 
 
@@ -199,7 +165,6 @@ class CustomBoard extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           double squareSize = constraints.maxWidth / size.h;
-          List<Widget> boardUnderlays = _generateUnderlays(squareSize); // Pass the padding value here
           return Stack(
             children: [
               if (background != null) background!,
@@ -238,7 +203,6 @@ class CustomBoard extends StatelessWidget {
                 acceptDrag: acceptDrag,
                 feedback: dragTargetFeedback,
               ),
-              ...boardUnderlays,
               CustomBoardPieces(
                 pieceSet: pieceSet,
                 state: state,

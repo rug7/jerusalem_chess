@@ -149,7 +149,6 @@ class _CustomBoardControllerState extends State<CustomBoardController> {
       background: widget.background,
       piecePadding: widget.piecePadding,
       underlays: widget.underlays,
-      h1SquareImage: currentLogo,
       overlays: [
         ...widget.overlays,
         if (premove?.promotion ?? false)

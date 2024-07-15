@@ -86,7 +86,24 @@
   "privacy&security": "Privacy & Security",
   "cancel": "Cancel",
   "send": "Send",
-  "edu": "Educational Tools"
+  "edu": "Educational Tools",
+  "video1": "Board and Pieces Basics",
+  "video2": "The Rook",
+  "video3": "The Bishop",
+  "video4": "The King and Queen",
+  "video5": "The Knight",
+  "video6": "The Pawn",
+  "video7": "Check and Checkmate",
+  "video8": "Piece Values",
+  "video9": "Importance of Piece Position",
+  "video10": "Best Way to Play",
+  "video11": "Castling: A Special Move for the King",
+  "video12": "The Story of Chess",
+  "contactUsFacebook": "Contact us through Facebook",
+  "contactUsInstagram": "Contact us through Instagram",
+  "contactUsYouTube": "Contact us through YouTube",
+  "contactUsLinkedIn": "Contact us through LinkedIn",
+  "contactUsWhatsApp": "Contact us through WhatsApp"
 
 
 }

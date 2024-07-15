@@ -500,7 +500,96 @@ class _GameScreenState extends State<GameScreen> {
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
-                  if (gameProvider.showAnalysisBoard)
+                  if (gameProvider.vsComputer && gameProvider.showAnalysisBoard)
+                    SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Table(
+                          border: TableBorder.all(color: const Color(0xff4e3c96), width: 3),
+                          columnWidths: const {
+                            0: FlexColumnWidth(2),
+                            1: FlexColumnWidth(4),
+                          },
+                          children: [
+                            TableRow(
+                              children: [
+                                TableCell(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      userModel.name,
+                                      style: TextStyle(
+                                        color: oppColor,
+                                        fontFamily: 'IBM Plex Sans Arabic',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 22,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                TableCell(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Agent Chess',
+                                      style: TextStyle(
+                                        color: oppColor,
+                                        fontFamily: 'IBM Plex Sans Arabic',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 22,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ...List<TableRow>.generate(
+                              (moveList.length + 1) ~/ 2,
+                                  (index) {
+                                String moveWhite = moveList.length > index * 2 ? moveList[index * 2] : "";
+                                String moveBlack = moveList.length > index * 2 + 1 ? moveList[index * 2 + 1] : "";
+
+                                return TableRow(
+                                  children: [
+                                    TableCell(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "${index + 1}. $moveWhite",
+                                          style: TextStyle(
+                                            color: oppColor,
+                                            fontFamily: 'IBM Plex Sans Arabic',
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    TableCell(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          moveBlack,
+                                          style: TextStyle(
+                                            color: oppColor,
+                                            fontFamily: 'IBM Plex Sans Arabic',
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+
+                  if(!gameProvider.vsComputer && gameProvider.showAnalysisBoard)
                     SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),

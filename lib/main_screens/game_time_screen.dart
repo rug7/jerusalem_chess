@@ -82,6 +82,8 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
     final bool isLightMode = _themeLanguageProvider.isLightMode;
     final textColor = isLightMode ? Colors.white : Colors.black;
     final oppColor = isLightMode ? Colors.black : Colors.white;
+    final cardColor = _themeLanguageProvider.isLightMode ? const Color(0xfff0f5f7) : const Color(0xff1e1e1e);
+
 
     return Scaffold(
       backgroundColor: textColor,
@@ -129,6 +131,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
+
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   childAspectRatio: 1.5,
@@ -138,6 +141,7 @@ class _GameTimeScreenState extends State<GameTimeScreen> {
                   final String label = _gameTimes[index].split(' ')[0];
                   final String gameTime = _gameTimes[index].split(' ')[1];
                   return buildGameType(
+                    cardColor: cardColor,
                     label: label,
                     gameTime: gameTime,
                     onTap: () {

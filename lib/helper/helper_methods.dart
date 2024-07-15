@@ -11,10 +11,12 @@ Widget buildGameType(
     {required String label,
     String? gameTime,
     IconData? icon,
+      Color ? cardColor,
     required Function() onTap}) {
   return InkWell(
     onTap: onTap,
     child: Card(
+        color: cardColor,
       // color: Colors.transparent,
       // elevation: 0,
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

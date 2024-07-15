@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_1/main_screens/educational_screen.dart';
 import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
@@ -72,6 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final backgroundColor = isLightMode ? Colors.white : Colors.black;
     final textColor = isLightMode ? Colors.black : Colors.white;
     final user = context.watch<AuthenticationProvider>().userModel;
+    final iconColor = isLightMode ? Colors.black : Colors.white;
+    final cardColor = _themeLanguageProvider.isLightMode ? const Color(0xfff0f5f7) : const Color(0xff1e1e1e);
+
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -129,6 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   buildGameType(
                     label: getTranslation('playAgainstComputer', _translations),
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     icon: Icons.computer,
                     onTap: () {
                       gameProvider.setVsComputer(value: true);
@@ -140,6 +148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   buildGameType(
                     label: getTranslation('multiplayer', _translations),
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     icon: Icons.group,
                     onTap: () {
                       gameProvider.setVsComputer(value: false);
@@ -151,6 +162,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   buildGameType(
                     label: getTranslation('gameHistory', _translations),
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     icon: Icons.history,
                     onTap: () {
                       Navigator.push(
@@ -162,6 +176,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   buildGameType(
                     label: getTranslation('edu', _translations),
                     icon: Icons.school,
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -171,6 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   buildGameType(
                     label: getTranslation('news', _translations),
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     icon: Icons.newspaper,
                     onTap: () {
                       Navigator.push(
@@ -181,6 +201,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   buildGameType(
                     label: getTranslation('communication', _translations),
+                    iconColor: iconColor,
+                    cardColor: cardColor,
+                    textColor: textColor,
                     icon: Icons.message,
                     onTap: () {
                       Navigator.push(
@@ -198,6 +221,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 150,
                 child: buildGameType(
                   label: getTranslation('settings', _translations),
+                  iconColor: iconColor,
+                  cardColor: cardColor,
+                  textColor: textColor,
                   icon: Icons.settings,
                   onTap: () {
                     Navigator.push(
@@ -218,11 +244,14 @@ class _HomeScreenState extends State<HomeScreen> {
     required String label,
     required IconData icon,
     required VoidCallback onTap,
+    required Color iconColor,
+    required Color cardColor,
+    required Color textColor
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        color: const Color(0xfff0f5f7),
+        color: cardColor,
         elevation: 2,
         margin: const EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
@@ -233,15 +262,16 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 40),
+                Icon(icon, size: 40,color: iconColor,),
                 const SizedBox(height: 10),
                 Text(
                   label,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'IBM Plex Sans Arabic',
+                    color: textColor
                   ),
                 ),
               ],
