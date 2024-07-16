@@ -57,7 +57,6 @@
 
   "gameInProg": "Game is still in progress",
   "go": "Game Over",
-  "settings": "Settings",
   "DarkMode": "Dark Mode",
   "Remember Login Details": "Remember Login Details",
   "Change Profile Picture": "Change Profile Picture",
@@ -103,7 +102,24 @@
   "contactUsInstagram": "Contact us through Instagram",
   "contactUsYouTube": "Contact us through YouTube",
   "contactUsLinkedIn": "Contact us through LinkedIn",
-  "contactUsWhatsApp": "Contact us through WhatsApp"
+  "contactUsWhatsApp": "Contact us through WhatsApp",
+  "readMore": "Read More",
+  "title1": "Results of the First Jerusalem Rapid Chess Championship 2021",
+  "des1": "The first and pioneering championship",
+  "title2": "Results of the Second Jerusalem Rapid Chess Championship 2022",
+  "des2": "The second Jerusalem rapid chess championship",
+  "title3": "Results of the Third Jerusalem Rapid Chess Championship 2022",
+  "des3": "A strong championship with the participation of former champions, coaches, and international players",
+  "title4": "Results of the Fourth Jerusalem Rapid Chess Championship 2023",
+  "des4": "A major Ramadan championship in Jerusalem with 80 participants",
+  "title5": "Results of the Fifth Jerusalem Rapid Chess Championship 2024",
+  "des5": "The strongest and highest-rated championship in the history of Jerusalem",
+  "title6": "Results of the First Jerusalem International Classical Chess Championship 2022",
+  "des6": "A classical chess championship that lasted for 5 weeks, sponsored by Al-Khatib for auditing and the Central Palestinian Chess Federation",
+  "title7": "Results of the First Eliyah Women's Chess Championship 2022",
+  "des7": "A championship dedicated to Jerusalemite chess players, the first of its kind in Jerusalem and the region, held with a rapid time control system",
+  "title8": "Results of the Jerusalem Schools Championship 2023",
+  "des8": "The largest school championship of its kind in the country with more than 200 students from different areas of Jerusalem, characterized by high professionalism and international-level organization"
 
 
 }

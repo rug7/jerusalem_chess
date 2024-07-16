@@ -41,9 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadTranslations() async {
     final language = _themeLanguageProvider.currentLanguage;
     final jsonContent = await loadTranslations(language);
-    setState(() {
-      _translations = jsonContent;
-    });
+    if(mounted){
+      setState(() {
+        _translations = jsonContent;
+      });
+    }
   }
 
   @override
