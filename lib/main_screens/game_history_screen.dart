@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 import '../providers/game_provider.dart';
 import '../providers/theme_language_provider.dart';
@@ -21,6 +22,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
   bool isLoading = true;
   int initialWins = 0;
   int initialLosses = 0;
+  Map<String, String?> opponentImages = {};
 
   @override
   void didChangeDependencies() {
@@ -88,11 +90,92 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
     }
   }
 
+  void showMovesDialog(List<String> moves, String playerName, String opponentName) {
+    final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(getTranslation('Moves', translations)),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Table(
+                  border: TableBorder.all(color: textColor,width: 2),
+                  columnWidths: const {
+                    0: FlexColumnWidth(1),
+                    1: FlexColumnWidth(1),
+                  },
+                  children: [
+                    TableRow(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            playerName,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: textColor),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            opponentName,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: textColor),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ...List.generate((moves.length / 2).ceil(), (index) {
+                      return TableRow(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              moves.length > index * 2 ? moves[index * 2] : '',
+                              style: TextStyle(fontSize: 16,color: textColor,),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              moves.length > index * 2 + 1 ? moves[index * 2 + 1] : '',
+                              style: TextStyle(fontSize: 16, color: textColor),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(getTranslation('Close', translations)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final gameProvider = Provider.of<GameProvider>(context);
+    final authProvider = Provider.of<AuthenticationProvider>(context);
+    final userModel = authProvider.userModel;
     final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
     final backgroundColor = _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212);
+
+    int totalGames = initialWins + initialLosses;
+    double winLossRatio = totalGames == 0 ? 0.0 : initialWins / totalGames;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -133,120 +216,190 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           },
         ),
       ),
-      body: Consumer<GameProvider>(
-        builder: (context, gameProvider, child) {
-          if (isLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else {
-            if (gameProvider.showAnalysisBoard) {
-              return ListView.builder(
-                itemCount: gameProvider.moveHistory.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(gameProvider.moveHistory[index], style: TextStyle(color: textColor)),
-                  );
-                },
-              );
-            } else {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Table(
-                    border: TableBorder.all(color: const Color(0xff4e3c96), width: 3),
-                    columnWidths: const {
-                      0: FlexColumnWidth(2),
-                      1: FlexColumnWidth(4),
-                      2: FlexColumnWidth(2), // Added this line for the W/L column
-                    },
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              // Profile section
+              Row(
+                children: [
+                  if (userModel?.image != null && userModel!.image.isNotEmpty)
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage: NetworkImage(userModel.image),
+                    )
+                  else
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 40, color: Colors.white),
+                    ),
+                  SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TableRow(
-                        children: [
-                          TableCell(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Ops', style: TextStyle(color: textColor,
-                                  fontFamily: 'IBM Plex Sans Arabic',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 22)),
-                            ),
-                          ),
-                          TableCell(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Moves', style: TextStyle(color: textColor,
-                                  fontFamily: 'IBM Plex Sans Arabic',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 22)),
-                            ),
-                          ),
-                          TableCell(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('W/L', style: TextStyle(color: textColor,
-                                  fontFamily: 'IBM Plex Sans Arabic',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 22)), // Added this line
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Wins: $initialWins',
+                        style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      ...gameHistory.map((game) {
-                        final opponentName = game['opponentName'] ?? 'Unknown';
-                        final moves = game['moves']?.join(', ') ?? 'No moves';
-                        final userDoc = Provider.of<AuthenticationProvider>(context, listen: false).userModel;
-                        final currentWins = userDoc?.wins ?? 0;
-                        final currentLosses = userDoc?.losses ?? 0;
-
-                        String result;
-                        if (currentLosses > initialLosses && currentWins == initialWins) {
-                          result = 'L';
-                        } else if (currentWins > initialWins && currentLosses == initialLosses) {
-                          result = 'W';
-                        } else {
-                          result = '-';
-                        }
-
-                        return TableRow(
-                          children: [
-                            TableCell(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(opponentName, style: TextStyle(
-                                    color: textColor,
-                                    fontFamily: 'IBM Plex Sans Arabic',
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18)),
-                              ),
-                            ),
-                            TableCell(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(moves, style: TextStyle(color: textColor,
-                                    fontFamily: 'IBM Plex Sans Arabic',
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18)),
-                              ),
-                            ),
-                            TableCell(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(result, style: TextStyle(color: textColor,
-                                    fontFamily: 'IBM Plex Sans Arabic',
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18)), // Added this line
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                      Text(
+                        'Losses: $initialLosses',
+                        style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'W/L Ratio: ${winLossRatio.toStringAsFixed(2)}',
+                        style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
-                ),
-              );
-            }
-          }
-        },
+                ],
+              ),
+              SizedBox(height: 20),
+              Table(
+                border: TableBorder.all(color: const Color(0xff4e3c96), width: 1),
+                columnWidths: const {
+                  0: FlexColumnWidth(2),
+                  1: FlexColumnWidth(1.5),
+                  2: FlexColumnWidth(1.5),
+                },
+                children: [
+                  TableRow(
+                    children: [
+                      tableHeaderCell('Players', textColor),
+                      tableHeaderCell('Moves', textColor),
+                      tableHeaderCell('Date', textColor),
+                    ],
+                  ),
+                  ...gameHistory.map((game) {
+                    final playerName = userModel?.name ?? 'Unknown';
+                    final playerImage = userModel?.image;
+                    final opponentName = game['opponentName'] ?? 'Unknown';
+                    final opponentImage = game['opponentPhoto'] ?? ''; // Fetch opponent image from 'userImage'
+                    final moves = List<String>.from(game['moves'] ?? []);
+                    final creationTime = game['creationTime'];
+                    final formattedCreationTime = creationTime is Timestamp
+                        ? DateFormat('MMM dd, yyyy').format(creationTime.toDate())
+                        : creationTime.toString().split(' ')[0];
+
+                    return TableRow(
+                      children: [
+                        playersCell(playerName, playerImage, opponentName, opponentImage, textColor),
+                        GestureDetector(
+                          onTap: () => showMovesDialog(moves, playerName, opponentName),
+                          child: movesTableCell('Show Moves', textColor),
+                        ),
+                        tableCell(formattedCreationTime, textColor),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Widget tableHeaderCell(String title, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Text(
+        title,
+        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget tableCell(String content, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        content,
+        style: TextStyle(color: textColor, fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget movesTableCell(String content, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        content,
+        style: TextStyle(
+          color: textColor,
+          fontFamily: 'IBM Plex Sans Arabic',
+          fontWeight: FontWeight.w800,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget playersCell(String playerName, String? playerImage, String opponentName, String? opponentImage, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (playerImage != null && playerImage.isNotEmpty)
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(playerImage),
+                )
+              else
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, size: 16, color: Colors.white),
+                ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  playerName,
+                  style: TextStyle(color: textColor, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4),
+          Row(
+            children: [
+              if (opponentImage != null && opponentImage.isNotEmpty)
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(opponentImage),
+                )
+              else
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, size: 16, color: Colors.white),
+                ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  opponentName,
+                  style: TextStyle(color: textColor, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String getTranslation(String key, Map<String, dynamic> translations) {
+    return translations[key] ?? key;
   }
 }

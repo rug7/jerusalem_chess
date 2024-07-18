@@ -383,6 +383,7 @@ class _GameScreenState extends State<GameScreen> {
     final textColor = isLightMode ? Colors.white : Colors.black;
     final oppColor = isLightMode ? Colors.black : Colors.white;
 
+
     if (!gameProvider.vsComputer) {
       gameProvider.listenForOpponentLeave(gameProvider.gameId, context);
     }
@@ -620,7 +621,7 @@ class _GameScreenState extends State<GameScreen> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      'Agent Chess',
+                                      opponentName,
                                       style: TextStyle(
                                         color: oppColor,
                                         fontFamily: 'IBM Plex Sans Arabic',
