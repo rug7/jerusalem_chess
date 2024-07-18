@@ -168,9 +168,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 if (success) {
                   Navigator.of(context).pop();
-                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordsuccess', translations),color: Colors.green);
+                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordSuccess', translations),color: Colors.green);
                 } else {
-                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordfailed"', translations), color: Colors.red);
+                  authProvider.showSnackBar(context: context, content: getTranslation('changePasswordFailed', translations), color: Colors.red);
                 }
               },
               child: Text(getTranslation('change', translations)),

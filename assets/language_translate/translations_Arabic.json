@@ -1,0 +1,102 @@
+{
+  "difficultyText": "صعوبة اللعبة",
+  "playAsBlackText": "العب باللون الأسود",
+  "playAsWhiteText": "العب باللون الأبيض",
+  "setUpText": "إعداد اللعبة",
+  "playText": "العب",
+  "easyMode": "سهل",
+  "mediumMode": "متوسط",
+  "hardMode": "صعب",
+  "chooseGameTime":"اختر وقت اللعبة",
+  "multiplayer": "لعب جماعي",
+  "playAgainstComputer": "العب ضد الكمبيوتر",
+  "about": "حول",
+  "settings": "الإعدادات",
+  "homeTitle": "شطرنج القدس",
+  "login": "تسجيل الدخول",
+  "yourEmail": "أدخل بريدك الإلكتروني",
+  "yourPass": "أدخل كلمة المرور الخاصة بك",
+  "forgotPass": "هل نسيت كلمة السر ؟",
+  "orSocial": "- أو - \nقم بتسجيل الدخول باستخدام",
+  "facebook": "فيسبوك",
+  "email": "البريد الإلكتروني",
+  "phone": "رقم الهاتف",
+  "noAccount": "ليس لديك حساب ؟",
+  "signup": "إنشاء حساب",
+  "yourName": "أدخل أسمك",
+  "sign_in": "تسجيل الدخول",
+  "gotAccount": "هل لديك حساب ؟",
+
+  "nameValidator": "الرجاء إدخال اسمك",
+  "nameLenValidator": "يجب أن يكون اسمك على الأقل 3 أحرف",
+
+  "emailValidator": "الرجاء إدخال بريدك الإلكتروني",
+  "emailNotValid": "الرجاء إدخال بريد إلكتروني صالح",
+  "emailLenValidator": "يجب أن يكون بريدك الإلكتروني على الأقل 3 أحرف",
+
+  "passwordValidator": "الرجاء إدخال كلمة مرور",
+  "passwordLenValidator": "يجب أن تكون كلمة المرور على الأقل 8 أحرف",
+
+  "fillFields": "يرجى ملئ جميع الحقول.",
+  "emailAuth": "عنوان البريد الإلكتروني مستخدم بالفعل.",
+  "signUpAuth": "فشل التسجيل.",
+  "signUpSuccess": "تم التسجيل بنجاح.",
+
+  "incEmailOrPass": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "errorOccurred": "حدث خطأ:",
+
+  "passwordMismatch": "كلمات المرور غير متطابقة",
+  "confirmPass": "أكد كلمة المرور",
+
+  "searching": "جاري البحث عن لاعب، الرجاء الإنتظار",
+  "joining": "جارٍ الانضمام إلى اللعبة، الرجاء الانتظار",
+
+  "gm": "صباح الخير، ",
+  "ga": "مساء الخير، ",
+  "ge": "مساء الخير، ",
+  "gameInProg": "اللعبة لا تزال جارية",
+  "go": "انتهت اللعبة",
+
+  "settings": "الإعدادات",
+  "DarkMode": "الوضع الداكن",
+  "Remember Login Details": "تذكر تفاصيل تسجيل الدخول",
+  "Change Profile Picture": "تغيير صورة الملف الشخصي",
+  "Take Photo": "التقاط صورة",
+  "Choose from Gallery": "اختر من المعرض",
+  "Delete Current Photo": "حذف الصورة الحالية",
+  "helpSupport": "المساعدة والدعم",
+  "signOut": "تسجيل الخروج",
+  "notifications": "الإشعارات",
+  "privacySecurity": "الخصوصية والأمان",
+  "gameHistory": "سجل الألعاب",
+  "news": "الأخبار",
+  "communication": "الاتصال",
+  "enteryourphonenumber": "أدخل رقم هاتفك",
+  "invalidPhoneNumber": "يرجى إدخال رقم هاتف صالح",
+
+  "changeNameSuccess": "تم تغيير الاسم بنجاح",
+  "changePasswordsuccess": "تم تغيير كلمة المرور بنجاح",
+  "changePasswordfailed": "فشل في تغيير كلمة المرور",
+  "changePassword": "تغيير كلمة المرور",
+  "changeName": "تغيير الاسم",
+  "change": "تغيير",
+  "newName": "اسم جديد",
+  "oldPassword": "كلمة المرور القديمة",
+  "newPassword": "كلمة المرور الجديدة",
+  "privacy&security": "الخصوصية والأمان",
+  "cancel": "إلغاء",
+  "send": "إرسال",
+  "changePasswordSuccess": "تم تغيير كلمة المرور بنجاح",
+  "changePasswordFailed": "فشل تغيير كلمة المرور"
+
+}
+
+
+
+
+
+
+
+
+
+
