@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/providers/authentication_provider.dart';
+import 'package:shatranj_alquds/providers/authentication_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:provider/provider.dart';
 import '../authentication/login_screen.dart';

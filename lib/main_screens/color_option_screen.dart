@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/authentication/searching_for_players.dart';
-import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter_chess_1/providers/authentication_provider.dart';
-import 'package:flutter_chess_1/providers/game_provider.dart';
+import '../authentication/searching_for_players.dart';
+import '../constants.dart';
+import '../providers/authentication_provider.dart';
+import '../providers/game_provider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../widgets/widgets.dart';
-import 'package:flutter_chess_1/providers/theme_language_provider.dart';
+import '../providers/theme_language_provider.dart';
 import 'home_screen.dart';
 
 class ColorOptionScreen extends StatefulWidget {
@@ -367,7 +367,9 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
                       onSuccess: (){
                         gameProvider.setIsLoading(value: false);
                         //navigate to game screen
-                        Navigator.pushNamed(context, Constants.gameScreen);
+                        if(mounted){
+                          Navigator.pushNamed(context, Constants.gameScreen);
+                        }
                       });
 
                 }else{

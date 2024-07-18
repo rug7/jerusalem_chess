@@ -3,11 +3,12 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter_chess_1/helper/uci_commands.dart';
+import 'package:shatranj_alquds/main_screens/game_history_screen.dart';
+import '../constants.dart';
+import '../helper/uci_commands.dart';
 import 'package:bishop/bishop.dart' as bishop;
-import 'package:flutter_chess_1/models/game_model.dart';
-import 'package:flutter_chess_1/models/user_model.dart';
+import '../models/game_model.dart';
+import '../models/user_model.dart';
 import 'package:provider/provider.dart';
 import 'package:square_bishop/square_bishop.dart';
 import 'package:squares/squares.dart';
@@ -381,7 +382,9 @@ class GameProvider extends ChangeNotifier {
               timeOut: true,
               stockfish: stockfish,
               whiteWon: true, //TODO here
-              onNewGame: onNewGame);
+              onNewGame: onNewGame,
+              gameStatus: 'gameOverStatus',
+          );
         }
       }
     });
@@ -407,7 +410,10 @@ class GameProvider extends ChangeNotifier {
               timeOut: true,
               stockfish: stockfish,
               whiteWon: false,
-              onNewGame: onNewGame);
+              onNewGame: onNewGame,
+              gameStatus: 'gameOverStatus',
+
+          );
         }
       }
     });
@@ -506,6 +512,7 @@ class GameProvider extends ChangeNotifier {
     required bool timeOut,
     required bool whiteWon,
     required Function onNewGame,
+    required String gameStatus,
     Stockfish? stockfish,
   }) async {
     //stop stockfish engine
@@ -581,6 +588,12 @@ class GameProvider extends ChangeNotifier {
     }
 
     if (context.mounted) {
+      String gameOverStatus = gameStatus.isEmpty ? 'Game Over' : gameStatus;
+
+      await firebaseFirestore.collection(Constants.runningGames).doc(gameId).update({
+        'gameStatus': gameOverStatus, // Update game status here
+      });
+
       setWaitingText();
       showDialog(
         context: context,
@@ -745,7 +758,6 @@ class GameProvider extends ChangeNotifier {
         Constants.whitesTime: _whiteSavedTime.toString(),
         Constants.blacksTime: _blackSavedTime.toString(),
       });
-      await updateGamesPlayed(userModel.uid); // Update games played
       onSuccess();
     } on FirebaseException catch (e) {
       _isLoading = false;
@@ -1452,22 +1464,26 @@ class GameProvider extends ChangeNotifier {
     try {
       final docSnapshot = await docRef.get();
       if (docSnapshot.exists) {
-        await docRef.update({
-          'playerLeft': userId,
-          'gameStatus':
-              'opponentLeft', // Add a status field to indicate the game is over
-          'isGameOver': true,
-          'winnerId': 'opponent', // Set the opponent as the winner
-        });
-        // Save game to user history before deletion
-        //List<String> moves = (docSnapshot.data() as Map<String, dynamic>)[Constants.moves];
-        //await saveGameToUserHistory(gameId, moves);
+        final gameData = docSnapshot.data() as Map<String, dynamic>;
+        final currentStatus = gameData['gameStatus'];
 
-        // Delete the game from availableGames and runningGames
-        // await firebaseFirestore.collection(Constants.availableGames).doc(gameId).delete();
-        // await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
-        // Delete the game from runningGames
-        //await firebaseFirestore.collection(Constants.runningGames).doc(gameId).delete();
+        // Update only if the game is still active
+        if (currentStatus != 'gameOverStatus') {
+          await docRef.update({
+            'playerLeft': userId,
+            'gameStatus': 'opponentLeft', // Update game status to opponent left
+            'isGameOver': true,
+            'winnerId': 'opponent', // Set the opponent as the winner
+          });
+        }
+        else{
+          await docRef.update({
+            'playerLeft': userId,
+            'gameStatus': 'gameOverStatus', // Update game status to opponent left
+            'isGameOver': true,
+            'winnerId': 'opponent', // Set the opponent as the winner
+          });
+        }
       } else {
         print('Document not found: ${docRef.path}');
         // Handle the case where the document doesn't exist
@@ -1477,48 +1493,6 @@ class GameProvider extends ChangeNotifier {
       // Handle any other errors that occur
     }
   }
-
-  // void listenForOpponentLeave(String gameId, BuildContext context) {
-  //   FirebaseFirestore.instance
-  //       .collection(Constants.runningGames)
-  //       .doc(gameId)
-  //       .snapshots()
-  //       .listen((snapshot) {
-  //     if (snapshot.exists && snapshot.data()!['gameStatus'] == 'opponentLeft') {
-  //       // Show the opponent left message
-  //       setWaitingText();
-  //       showDialog(
-  //         context: context,
-  //         builder: (context) => AlertDialog(
-  //           title: const Text('You Win!'),
-  //           content: const Text('Your opponent has left the game.'),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.pushAndRemoveUntil(
-  //                   context,
-  //                   MaterialPageRoute(builder: (context) => const HomeScreen()),
-  //                   (Route<dynamic> route) => false,
-  //                 );
-  //               },
-  //               child: const Text('Exit', style: TextStyle(color: Colors.red)),
-  //             ),
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.pop(context);
-  //
-  //                 context.read<GameProvider>().toggleAnalysisBoard();
-  //               },
-  //               child: const Text('Analysis Board',
-  //                   style: TextStyle(color: Colors.orange)),
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     }
-  //   });
-  //   // FirebaseFirestore.instance.collection(Constants.runningGames).doc(gameId).delete();
-  // }
 
   void listenForOpponentLeave(String gameId, BuildContext context) {
     try {
@@ -1556,13 +1530,6 @@ class GameProvider extends ChangeNotifier {
                           );
                         },
                         child: const Text('Exit', style: TextStyle(color: Colors.red)),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.read<GameProvider>().toggleAnalysisBoard();
-                        },
-                        child: const Text('Analysis Board', style: TextStyle(color: Colors.orange)),
                       ),
                     ],
                   ),

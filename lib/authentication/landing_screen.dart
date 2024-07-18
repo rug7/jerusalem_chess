@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/authentication/login_screen.dart';
-import 'package:flutter_chess_1/providers/authentication_provider.dart';
+import '../authentication/login_screen.dart';
+import '../providers/authentication_provider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 

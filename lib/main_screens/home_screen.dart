@@ -1,13 +1,13 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/main_screens/educational_screen.dart';
-import 'package:flutter_chess_1/main_screens/game_history_screen.dart';
-import 'package:flutter_chess_1/main_screens/communication_screen.dart';
-import 'package:flutter_chess_1/main_screens/game_time_screen.dart';
-import 'package:flutter_chess_1/main_screens/settings_screen.dart';
-import 'package:flutter_chess_1/providers/game_provider.dart';
-import 'package:flutter_chess_1/providers/theme_language_provider.dart';
+import '../main_screens/educational_screen.dart';
+import '../main_screens/game_history_screen.dart';
+import '../main_screens/communication_screen.dart';
+import '../main_screens/game_time_screen.dart';
+import '../main_screens/settings_screen.dart';
+import '../providers/game_provider.dart';
+import '../providers/theme_language_provider.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
 import '../providers/authentication_provider.dart';

@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/authentication/sign_up_screen.dart';
-import 'package:flutter_chess_1/helper/helper_methods.dart';
-import 'package:flutter_chess_1/widgets/main_auth_button.dart';
-import 'package:flutter_chess_1/widgets/widgets.dart';
+import '../authentication/sign_up_screen.dart';
+import '../helper/helper_methods.dart';
+import '../widgets/main_auth_button.dart';
+import '../widgets/widgets.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../main_screens/home_screen.dart';

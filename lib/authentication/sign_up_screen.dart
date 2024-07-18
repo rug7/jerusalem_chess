@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/authentication/login_screen.dart';
-import 'package:flutter_chess_1/main_screens/home_screen.dart';
-import 'package:flutter_chess_1/models/user_model.dart';
-import 'package:flutter_chess_1/providers/authentication_provider.dart';
+import '../authentication/login_screen.dart';
+import '../main_screens/home_screen.dart';
+import '../models/user_model.dart';
+import '../providers/authentication_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -73,7 +73,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         finalFileImage = File(croppedFile.path);
       });
 
-      // print('imagePath: $finalFileImage');
     }else{
       popCropDialog();
     }
@@ -149,9 +148,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     // Dispose the listener to avoid memory leaks
     _themeLanguageProvider.removeListener(_onLanguageChanged);
-    // nameController.dispose();
-    // emailController.dispose();
-    // passwordController.dispose();
     super.dispose();
   }
 
@@ -160,74 +156,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _loadTranslations(); // Reload translations when the language changes
   }
 
-  //signUp user in fireStore
-  // signUp user in fireStore
-  // void signUpUser() async {
-  //   final authProvider = context.read<AuthenticationProvider>();
-  //
-  //   if (formKey.currentState!.validate()) {
-  //     // Save the form
-  //     formKey.currentState!.save();
-  //
-  //     try {
-  //       UserCredential? userCredential = await authProvider.createUserWithEmailAndPassword(
-  //         email: email,
-  //         password: password,
-  //       );
-  //
-  //       if (userCredential != null) {
-  //         // User created - save to firestore
-  //         print('User created: ${userCredential.user!.uid}');
-  //
-  //         UserModel userModel = UserModel(
-  //           uid: userCredential.user!.uid,
-  //           name: name,
-  //           email: email,
-  //           image: '',
-  //           createdAt: '',
-  //         );
-  //
-  //         authProvider.saveUserDataToFireStore(
-  //           currentUser: userModel,
-  //           fileImage: finalFileImage,
-  //           onSuccess: () async {
-  //             formKey.currentState!.reset();
-  //
-  //             // Sign out the user and navigate to the login screen
-  //             authProvider.showSnackBar(context: context, content: 'Signed Up Successfully',color: Colors.green);
-  //
-  //             await authProvider.sighOutUser().whenComplete(() {
-  //               Navigator.pushAndRemoveUntil(
-  //                 context,
-  //                 MaterialPageRoute(builder: (context) => const HomeScreen()),
-  //                     (Route<dynamic> route) => false,
-  //               );
-  //             });
-  //           },
-  //           onFail: (error) {
-  //             authProvider.showSnackBar(context: context, content: error.toString());
-  //           },
-  //         );
-  //       }
-  //     } on FirebaseAuthException catch (e) {
-  //       if (e.code == 'email-already-in-use') {
-  //         // Handle the case where the user's email already exists
-  //         authProvider.showSnackBar(context: context, content: 'The email address is already in use.',color: Colors.red);
-  //       } else {
-  //         // Handle other FirebaseAuthExceptions
-  //         authProvider.showSnackBar(context: context, content: 'Sign up failed. ${e.message}',color: Colors.red);
-  //       }
-  //       authProvider.setIsLoading(value: false);
-  //     } catch (e) {
-  //       // Handle other exceptions
-  //       authProvider.showSnackBar(context: context, content: 'Sign up failed. $e',color: Colors.red);
-  //     }
-  //   } else {
-  //     authProvider.showSnackBar(context: context, content: 'Please fill all fields',color: Colors.red);
-  //   }
-  // }
-
-  // signUp user in fireStore
   // signUp user in fireStore
   void signUpUser() async {
     final authProvider = context.read<AuthenticationProvider>();
@@ -568,9 +496,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 }
                                 return null;
                               },
+
                               onChanged: (value) {
                                 setState(() {
                                   phoneNumber = _selectedPrefix + value;
+
                                 });
                               },
                             ),

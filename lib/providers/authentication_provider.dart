@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter_chess_1/models/user_model.dart';
+import '../models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+
+import '../constants.dart';
 
 class AuthenticationProvider extends ChangeNotifier {
   bool _isLoading = false;

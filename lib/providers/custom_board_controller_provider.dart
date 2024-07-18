@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:squares/squares.dart';
-import 'package:flutter_chess_1/providers/custom_board_provider.dart';
-import 'package:flutter_chess_1/providers/custom_piece_set.dart';
+import '../providers/custom_board_provider.dart';
+import '../providers/custom_piece_set.dart';
 
 import '../main_screens/game_screen.dart';
 import 'custom_board_theme.dart';

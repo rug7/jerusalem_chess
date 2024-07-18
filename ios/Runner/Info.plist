@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flutter Chess 1</string>
+        <string>شطرنج القدس</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,8 +22,8 @@
         <true/>
     </dict>
 	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>flutter_chess_1</string>
+    <key>CFBundleName</key>
+    <string>شطرنج القدس</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

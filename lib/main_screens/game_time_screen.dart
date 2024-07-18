@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chess_1/constants.dart';
-import 'package:flutter_chess_1/providers/theme_language_provider.dart';
-import 'package:flutter_svg/svg.dart';
+import '../constants.dart';
+import '../providers/theme_language_provider.dart';
 import 'package:provider/provider.dart';
 import '../helper/helper_methods.dart';
-
 import 'color_option_screen.dart';
-import 'home_screen.dart';
 
 class GameTimeScreen extends StatefulWidget {
   const GameTimeScreen({Key? key});

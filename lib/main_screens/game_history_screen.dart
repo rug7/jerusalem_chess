@@ -19,6 +19,8 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
   Map<String, dynamic> translations = {};
   List<Map<String, dynamic>> gameHistory = [];
   bool isLoading = true;
+  int initialWins = 0;
+  int initialLosses = 0;
 
   @override
   void didChangeDependencies() {
@@ -32,8 +34,29 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
       }
     });
 
-    // Fetch game history from Firestore
-    fetchGameHistory();
+    // Fetch initial wins and losses and then fetch game history
+    fetchInitialWinsAndLosses().then((_) {
+      fetchGameHistory();
+    });
+  }
+
+  Future<void> fetchInitialWinsAndLosses() async {
+    final authProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+    final userModel = authProvider.userModel;
+
+    if (userModel != null) {
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userModel.uid)
+          .get();
+
+      if (userDoc.exists && mounted) {
+        setState(() {
+          initialWins = userDoc['wins'] ?? 0;
+          initialLosses = userDoc['losses'] ?? 0;
+        });
+      }
+    }
   }
 
   void reloadTranslations(String language) {
@@ -56,13 +79,11 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           .doc(userModel.uid)
           .get();
 
-      if (userDoc.exists) {
-        if (mounted) {
-          setState(() {
-            gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
-            isLoading = false;
-          });
-        }
+      if (userDoc.exists && mounted) {
+        setState(() {
+          gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
+          isLoading = false;
+        });
       }
     }
   }
@@ -172,9 +193,18 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                       ...gameHistory.map((game) {
                         final opponentName = game['opponentName'] ?? 'Unknown';
                         final moves = game['moves']?.join(', ') ?? 'No moves';
-                        final result = game['result'] == 'win'
-                            ? 'W'
-                            : 'L'; // Assuming game has a 'result' field with 'win' or 'lose'
+                        final userDoc = Provider.of<AuthenticationProvider>(context, listen: false).userModel;
+                        final currentWins = userDoc?.wins ?? 0;
+                        final currentLosses = userDoc?.losses ?? 0;
+
+                        String result;
+                        if (currentLosses > initialLosses && currentWins == initialWins) {
+                          result = 'L';
+                        } else if (currentWins > initialWins && currentLosses == initialLosses) {
+                          result = 'W';
+                        } else {
+                          result = '-';
+                        }
 
                         return TableRow(
                           children: [

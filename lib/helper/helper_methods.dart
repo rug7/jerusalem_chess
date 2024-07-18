@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_chess_1/providers/game_provider.dart';
+import '../providers/game_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:squares/squares.dart';
 
