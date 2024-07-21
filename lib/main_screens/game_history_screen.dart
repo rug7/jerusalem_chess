@@ -1,9 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-import '../providers/game_provider.dart';
 import '../providers/theme_language_provider.dart';
 import '../providers/authentication_provider.dart';
 import '../helper/helper_methods.dart';
@@ -82,8 +82,28 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
           .get();
 
       if (userDoc.exists && mounted) {
+        final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
+        Map<String, Map<String, dynamic>> uniqueGames = {};
+
+        // Fetch opponent images and filter duplicates
+        for (var game in history) {
+          final gameId = game['gameId'];
+          if (gameId != null) {
+            uniqueGames[gameId] = game;
+
+            // Fetch opponent images
+            if (game['opponentId'] != null) {
+              final opponentId = game['opponentId'];
+              final opponentDoc = await FirebaseFirestore.instance.collection('users').doc(opponentId).get();
+              if (opponentDoc.exists) {
+                opponentImages[opponentId] = opponentDoc['image'];
+              }
+            }
+          }
+        }
+
         setState(() {
-          gameHistory = List<Map<String, dynamic>>.from(userDoc['gameHistory'] ?? []);
+          gameHistory = uniqueGames.values.toList();
           isLoading = false;
         });
       }
@@ -101,7 +121,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
             child: Column(
               children: [
                 Table(
-                  border: TableBorder.all(color: textColor,width: 2),
+                  border: TableBorder.all(color: textColor, width: 2),
                   columnWidths: const {
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(1),
@@ -113,7 +133,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             playerName,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: textColor),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -121,7 +141,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             opponentName,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: textColor),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -134,7 +154,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
                               moves.length > index * 2 ? moves[index * 2] : '',
-                              style: TextStyle(fontSize: 16,color: textColor,),
+                              style: TextStyle(fontSize: 16, color: textColor),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -174,8 +194,8 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
     final textColor = _themeLanguageProvider.isLightMode ? Colors.black : Colors.white;
     final backgroundColor = _themeLanguageProvider.isLightMode ? Colors.white : const Color(0xFF121212);
 
-    int totalGames = initialWins + initialLosses;
-    double winLossRatio = totalGames == 0 ? 0.0 : initialWins / totalGames;
+    double totalGames = (initialWins/2) + (initialLosses/2);
+    double winLossRatio = totalGames == 0 ? 0.0 : (initialWins/2) / totalGames;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -198,13 +218,13 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
               reloadTranslations(selectedLanguage);
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Arabic',
-                child: Text('العربية'),
+                child: Text(getTranslation('Arabic', translations)),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'English',
-                child: Text('English'),
+                child: Text(getTranslation('English', translations)),
               ),
             ],
           ),
@@ -242,15 +262,15 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Wins: $initialWins',
+                        '${getTranslation('Wins', translations)}: ${initialWins}',
                         style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Losses: $initialLosses',
+                        '${getTranslation('Losses', translations)}: ${initialLosses}',
                         style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'W/L Ratio: ${winLossRatio.toStringAsFixed(2)}',
+                        '${getTranslation('W/L Ratio', translations)}: ${winLossRatio.toStringAsFixed(2)}',
                         style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -268,16 +288,17 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                 children: [
                   TableRow(
                     children: [
-                      tableHeaderCell('Players', textColor),
-                      tableHeaderCell('Moves', textColor),
-                      tableHeaderCell('Date', textColor),
+                      tableHeaderCell(getTranslation('Players', translations), textColor),
+                      tableHeaderCell(getTranslation('Moves', translations), textColor),
+                      tableHeaderCell(getTranslation('Date', translations), textColor),
                     ],
                   ),
                   ...gameHistory.map((game) {
                     final playerName = userModel?.name ?? 'Unknown';
                     final playerImage = userModel?.image;
                     final opponentName = game['opponentName'] ?? 'Unknown';
-                    final opponentImage = game['opponentPhoto'] ?? ''; // Fetch opponent image from 'userImage'
+                    final opponentId = game['opponentId'] ?? '';
+                    final opponentImage = opponentImages[opponentId] ?? '';
                     final moves = List<String>.from(game['moves'] ?? []);
                     final creationTime = game['creationTime'];
                     final formattedCreationTime = creationTime is Timestamp
@@ -289,7 +310,7 @@ class _GameHistoryScreenState extends State<GameHistoryScreen> {
                         playersCell(playerName, playerImage, opponentName, opponentImage, textColor),
                         GestureDetector(
                           onTap: () => showMovesDialog(moves, playerName, opponentName),
-                          child: movesTableCell('Show Moves', textColor),
+                          child: movesTableCell(getTranslation('Show Moves', translations), textColor),
                         ),
                         tableCell(formattedCreationTime, textColor),
                       ],

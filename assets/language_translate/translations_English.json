@@ -119,7 +119,16 @@
   "title7": "Results of the First Eliyah Women's Chess Championship 2022",
   "des7": "A championship dedicated to Jerusalemite chess players, the first of its kind in Jerusalem and the region, held with a rapid time control system",
   "title8": "Results of the Jerusalem Schools Championship 2023",
-  "des8": "The largest school championship of its kind in the country with more than 200 students from different areas of Jerusalem, characterized by high professionalism and international-level organization"
-
+  "des8": "The largest school championship of its kind in the country with more than 200 students from different areas of Jerusalem, characterized by high professionalism and international-level organization",
+  "Moves": "Moves",
+  "Close": "Close",
+  "Wins": "Wins",
+  "Losses": "Losses",
+  "W/L Ratio": "W/L Ratio",
+  "Players": "Players",
+  "Show Moves": "Show Moves",
+  "Date": "Date",
+  "Arabic": "Arabic",
+  "English": "English"
 
 }

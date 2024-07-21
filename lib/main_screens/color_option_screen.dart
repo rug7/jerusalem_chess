@@ -356,7 +356,9 @@ class _ColorOptionScreenState extends State<ColorOptionScreen> {
           gameProvider.searchForPlayer(
               userModel: userModel!,
               onSuccess: (){
-                if(gameProvider.waitingText == 'جاري البحث عن لاعب، الرجاء الإنتظار'){
+                // if(gameProvider.waitingText == 'جاري البحث عن لاعب، الرجاء الإنتظار'){
+                if(gameProvider.waitingText == 'Searching for a player, please wait'){
+
                   //gameProvider.waitingText == getTranslation('searching', translations);
                   //stay on this screen and wait
                   //TODO put an animation and navigate while waiting

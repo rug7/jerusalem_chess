@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../helper/helper_methods.dart';
 import '../helper/uci_commands.dart';
@@ -11,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:squares/squares.dart';
 import 'package:stockfish/stockfish.dart';
 
-import '../constants.dart';
 import '../providers/custom_board_theme.dart';
 import '../providers/custom_piece_set.dart';
 import 'home_screen.dart';

@@ -653,7 +653,9 @@ class GameProvider extends ChangeNotifier {
         //check if there are no games where isPlaying == false
         if (gamesList.isEmpty) {
           //TODO THE GET TRANSLATIONS
-          _waitingText = 'جاري البحث عن لاعب، الرجاء الإنتظار';
+          // _waitingText = 'جاري البحث عن لاعب، الرجاء الإنتظار';
+          _waitingText = 'Searching for a player, please wait';
+
           //getTranslation('searching', _translations);
           notifyListeners();
           // create a new game
@@ -664,8 +666,8 @@ class GameProvider extends ChangeNotifier {
           );
         } else {
           //TODO THE GET TRANSLATIONS
-          _waitingText =
-          'جارٍ الانضمام إلى اللعبة، الرجاء الانتظار'; //getTranslation('joining', _translations);
+          // _waitingText = 'جارٍ الانضمام إلى اللعبة، الرجاء الانتظار'; //getTranslation('joining', _translations);
+          _waitingText = 'Joining the game, please wait';
           notifyListeners();
           //join a game
           joinGame(
@@ -677,8 +679,8 @@ class GameProvider extends ChangeNotifier {
         }
       } else {
         //TODO THE GET TRANSLATIONS
-        _waitingText =
-        'جاري البحث عن لاعب، الرجاء الإنتظار'; //getTranslation('searching', _translations);
+        // _waitingText = 'جاري البحث عن لاعب، الرجاء الإنتظار'; //getTranslation('searching', _translations);
+        _waitingText = 'Searching for a player, please wait';
         notifyListeners();
         //we don't have any available games - create a game
         createNewGameInFireStore(
@@ -767,31 +769,8 @@ class GameProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> updateWins(String userId) async {
-    final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
-    await firebaseFirestore.runTransaction((transaction) async {
-      final userSnapshot = await transaction.get(userRef);
-      if (userSnapshot.exists) {
-        final userData = userSnapshot.data() as Map<String, dynamic>;
-        int wins = userData[Constants.wins] ?? 0;
-        wins += 1;
-        transaction.update(userRef, {Constants.wins: wins});
-      }
-    });
-  }
 
-  Future<void> updateLosses(String userId) async {
-    final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
-    await firebaseFirestore.runTransaction((transaction) async {
-      final userSnapshot = await transaction.get(userRef);
-      if (userSnapshot.exists) {
-        final userData = userSnapshot.data() as Map<String, dynamic>;
-        int losses = userData[Constants.losses] ?? 0;
-        losses += 1;
-        transaction.update(userRef, {Constants.losses: losses});
-      }
-    });
-  }
+
 
   //join game
   void joinGame({
@@ -1297,11 +1276,8 @@ class GameProvider extends ChangeNotifier {
       final userRef = firebaseFirestore.collection(Constants.users).doc(userId);
       final opponentRef =
       firebaseFirestore.collection(Constants.users).doc(opponentId);
-      print("moves history: $moves");
 
       List<String> validMoves = moves.where(isValidMove).toList();
-      print("valid moves:$validMoves");
-
       // Update the game history for both users
       await firebaseFirestore.runTransaction((transaction) async {
         final userSnapshot = await transaction.get(userRef);
@@ -1313,13 +1289,12 @@ class GameProvider extends ChangeNotifier {
 
           // Get existing game history
           List<dynamic> userGameHistory = userData[Constants.gameHistory] ?? [];
-          List<dynamic> opponentGameHistory =
-              opponentData[Constants.gameHistory] ?? [];
+          List<dynamic> opponentGameHistory = opponentData[Constants.gameHistory] ?? [];
 
           // Find the game entry and update it
           bool userGameFound = false;
           for (var game in userGameHistory) {
-            if (game['creationTime'] == creationTime) {
+            if (game['gameId'] == gameId) {
               game['moves'] = validMoves;
               userGameFound = true;
               break;
@@ -1327,7 +1302,9 @@ class GameProvider extends ChangeNotifier {
           }
           if (!userGameFound) {
             userGameHistory.add({
+              'gameId':gameId,
               'opponentName': opponentName,
+              'opponentId': opponentId,
               'creationTime': creationTime,
               'moves': validMoves,
             });
@@ -1335,7 +1312,7 @@ class GameProvider extends ChangeNotifier {
 
           bool opponentGameFound = false;
           for (var game in opponentGameHistory) {
-            if (game['creationTime'] == creationTime) {
+            if (game['gameId'] == gameId) {
               game['moves'] = validMoves;
               opponentGameFound = true;
               break;
@@ -1343,7 +1320,9 @@ class GameProvider extends ChangeNotifier {
           }
           if (!opponentGameFound) {
             opponentGameHistory.add({
+              'gameId':gameId,
               'opponentName': userName,
+              'opponentId': userId,
               'creationTime': creationTime,
               'moves': validMoves,
             });
@@ -1562,35 +1541,41 @@ class GameProvider extends ChangeNotifier {
           opponentUid: opponentUid,
         );
 
-        // Update the ratings in the database
-        await firebaseFirestore
-            .collection(Constants.users)
-            .doc(gameCreatorUid)
-            .update({
+        // Use a batch to update ratings and wins/losses in a single atomic operation
+        WriteBatch batch = firebaseFirestore.batch();
+
+        batch.update(firebaseFirestore.collection(Constants.users).doc(gameCreatorUid), {
           Constants.userRating: newRatings[gameCreatorUid],
         });
 
-        await firebaseFirestore
-            .collection(Constants.users)
-            .doc(opponentUid)
-            .update({
+        batch.update(firebaseFirestore.collection(Constants.users).doc(opponentUid), {
           Constants.userRating: newRatings[opponentUid],
         });
 
-        await updateWins(winnerId);
+        // Update wins and losses
         if (winnerId == gameCreatorUid) {
-          await updateLosses(opponentUid);
+          batch.update(firebaseFirestore.collection(Constants.users).doc(opponentUid), {
+            Constants.losses: FieldValue.increment(1),
+          });
+          batch.update(firebaseFirestore.collection(Constants.users).doc(gameCreatorUid), {
+            Constants.wins: FieldValue.increment(1),
+          });
         } else {
-          await updateLosses(gameCreatorUid);
+          batch.update(firebaseFirestore.collection(Constants.users).doc(gameCreatorUid), {
+            Constants.losses: FieldValue.increment(1),
+          });
+          batch.update(firebaseFirestore.collection(Constants.users).doc(opponentUid), {
+            Constants.wins: FieldValue.increment(1),
+          });
         }
 
         // Mark the ratings as updated by setting winnerId
-        await firebaseFirestore
-            .collection(Constants.runningGames)
-            .doc(gameId)
-            .update({
+        batch.update(firebaseFirestore.collection(Constants.runningGames).doc(gameId), {
           Constants.winnerId: winnerId,
         });
+
+        // Commit the batch
+        await batch.commit();
 
         onSuccess();
       } catch (e) {
